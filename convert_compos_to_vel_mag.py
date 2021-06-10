@@ -43,3 +43,4 @@ while vel_norm ==2 not continuous across x:
     lower percolation_threshold
     check for continuity
     
+ddd
