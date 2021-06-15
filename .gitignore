@@ -1,5 +1,9 @@
 #project specific ignores 
 Data/
+continuity_check.py
+path_check.py
+cc3d_example.py
+
 #Python specific ignores
 # Byte-compiled / optimized / DLL files
 __pycache__/

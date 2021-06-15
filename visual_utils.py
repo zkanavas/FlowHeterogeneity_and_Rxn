@@ -49,7 +49,7 @@ def numpy_to_ply(coordinates,color,file_name="Ux_pcd.ply",overwrite=False):
     else: #if file doesn't exists
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(coordinates)
-        if file_name == "structure.ply":
+        if file_name == "structure.ply" or file_name =="highspeed.ply":
             colors = binary_colormap((color))
         else:
             colors = array_to_RGB(color,colormap="turbo")
