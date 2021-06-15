@@ -6,9 +6,9 @@ import os
 
 def array_to_dataframe(a,sliceby=1):
     x, y, z = a.shape
-    coords = np.column_stack((np.repeat(np.arange(x), y*z),  # x-column
+    coords = np.column_stack((np.repeat(np.arange(x), y*z),  # z-column
                               np.tile(np.repeat(np.arange(x), y), z), # y-column
-                              np.tile(np.tile(np.arange(x), y), z)))  # z-column
+                              np.tile(np.tile(np.arange(x), y), z)))  # x-column
     coords = coords[::sliceby,:] #reduce number of points to show
     color = a.reshape(x*y*z, -1)
     color = color[::sliceby,:] #reduce number of points to show
@@ -32,27 +32,31 @@ def array_to_RGB(a,colormap="redness"):
             colorscale[ind,:] = np.array(interpolate(ele)).flatten()
     return colorscale
 
-def numpy_to_ply(coordinates,color,file_name="Ux_pcd.ply",overwrite=False):
+def numpy_to_ply(coordinates,color,file_name="Ux_pcd.ply",overwrite=False,colormap = "turbo"):
     if os.path.isfile(file_name): #if file exists
         if not overwrite: #if I don't want to overwrite it
             return o3d.io.read_point_cloud(file_name)
         else: #if I do want to overwrite existing file
             pcd = o3d.geometry.PointCloud()
             pcd.points = o3d.utility.Vector3dVector(coordinates)
-            if file_name == "structure.ply":
-                colors = binary_colormap((color))
-            else:
+            if colormap == "turbo":
                 colors = array_to_RGB(color,colormap="turbo")
+            elif colormap == "binary":
+                colors = binary_colormap((color))
+            elif colormap == "segmented":
+                colors = segmented_colormap((color))
             pcd.colors = o3d.utility.Vector3dVector(colors) #how to add alpha/transparency??
             o3d.io.write_point_cloud(file_name,pcd)
             return o3d.io.read_point_cloud(file_name)
     else: #if file doesn't exists
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(coordinates)
-        if file_name == "structure.ply" or file_name =="highspeed.ply":
-            colors = binary_colormap((color))
-        else:
+        if colormap == "turbo":
             colors = array_to_RGB(color,colormap="turbo")
+        elif colormap == "binary":
+            colors = binary_colormap((color))
+        elif colormap == "segmented":
+            colors = segmented_colormap((color))
         pcd.colors = o3d.utility.Vector3dVector(colors) #how to add alpha/transparency??
         o3d.io.write_point_cloud(file_name,pcd)
         return o3d.io.read_point_cloud(file_name)
@@ -72,6 +76,23 @@ def convert_to_structure(coord,color, show_pore_space = False):
 def binary_colormap(a):
     colorscale = np.zeros((len(a),3))
     return colorscale
+
+def segmented_colormap(a):
+    colorscale = np.zeros((len(a),3)) #default is black
+    for i,k in enumerate(a):
+        if k == 3:
+            colorscale[i] = (1,0,0) #red
+        elif k == 2:
+            colorscale[i] = (1,1,1) #white
+        elif k == 1:
+            colorscale[i] = (0,0,1) #blue
+    return colorscale
+
+def only_percolating_path(coord,color,):
+    ind_remove = np.where(color != 3)[0]
+    coord = np.delete(coord, ind_remove, axis = 0)
+    color = np.delete(color, ind_remove, axis = 0)
+    return coord,color
 
 if __name__ == "__main__":
     a = np.array([[[0, 0, 0],
