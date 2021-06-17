@@ -3,6 +3,7 @@ Data/
 continuity_check.py
 path_check.py
 cc3d_example.py
+usrguid3.pdf
 
 #Python specific ignores
 # Byte-compiled / optimized / DLL files
