@@ -6,6 +6,7 @@ import pandas as pd
 import open3d as o3d
 from visual_utils import array_to_dataframe, array_to_RGB, numpy_to_ply, convert_to_structure, only_percolating_path
 import h5py
+import time
 
 plot_velocity_field = False
 plot_structure = False
@@ -15,6 +16,8 @@ plot_percolating_path = True
 sample_descriptor = "estaillades"
 imagesize =(650,650,650)
 datatype = 'uint8'
+
+tic = time.perf_counter()
 
 #data directory
 directory = os.path.normpath(r'C:\Users\zkana\Documents\FlowHeterogeneity_and_Rxn\Data')
@@ -63,3 +66,6 @@ elif plot_percolating_path == True:
     filename = directory + "/" + sample_descriptor + "_percolating_path.ply"
     pcd = numpy_to_ply(coords, color, file_name=filename, overwrite=False, colormap="segmented")
     o3d.visualization.draw_geometries([pcd])
+
+toc = time.perf_counter()
+print("time elapsed: " + str(toc-tic) + " seconds" )

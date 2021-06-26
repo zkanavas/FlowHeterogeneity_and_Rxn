@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import time
 
 #customize these for each sample
 sample_descriptor = "estaillades"
@@ -13,6 +14,8 @@ directory = os.path.normpath(r'C:\Users\zkana\Documents\FlowHeterogeneity_and_Rx
 Ux_velfield = directory + '/Ux_estaillades.dat'
 Uy_velfield = directory + '/Uy_estaillades.dat'
 Uz_velfield = directory + '/Uz_estaillades.dat'
+
+tic = time.perf_counter()
 
 #load images
 #x-direction
@@ -35,3 +38,6 @@ vel_magnitude = sum([Ux_array**2, Uy_array**2, Uz_array**2])**(1/2)
 
 #save magnitude file
 vel_magnitude.astype('float16').tofile(directory +"/" + sample_descriptor + '_velocity_magnitude.txt')
+
+toc = time.perf_counter()
+print("time elapsed: " + str(toc-tic) + " seconds" )

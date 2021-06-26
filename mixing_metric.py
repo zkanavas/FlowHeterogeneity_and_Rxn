@@ -2,6 +2,7 @@ from skimage.measure import label, regionprops_table, marching_cubes, mesh_surfa
 import os
 import numpy as np
 import pandas as pd
+import time
 
 #customize these for each sample
 sample_descriptor = "beadpack"
@@ -9,6 +10,8 @@ imagesize =(500,500,500)
 # sample_descriptor = "estaillades"
 # imagesize =(650,650,650)
 datatype = 'uint8'
+
+tic = time.perf_counter()
 
 #data directory
 directory = os.path.normpath(r'C:\Users\zkana\Documents\FlowHeterogeneity_and_Rxn\Data')
@@ -38,3 +41,6 @@ volume = sum(props['area'])
 #find and print mixing metric
 mixing_metric = (surfacearea)**(1/2)/(volume)**(1/3)
 print(mixing_metric)
+
+toc = time.perf_counter()
+print("time elapsed: " + str(toc-tic) + " seconds" )
