@@ -4,14 +4,11 @@ from visual_utils import array_to_dataframe, convert_to_structure, numpy_to_ply
 from skimage.measure import label, regionprops, regionprops_table
 import pandas as pd
 import open3d as o3d
-import time
 
 #customize these for each sample
 sample_descriptor = "menke_ketton"
 imagesize =(922,902,911)
 datatype = 'float16'
-
-tic = time.perf_counter()
 
 #data directory
 directory = os.path.normpath(r'E:\FlowHet_RxnDist')
@@ -56,6 +53,3 @@ vel_norm[z_1,y_1,x_1] = 1 #stagnant zone
 
 #save thresholded velocity field
 vel_norm.astype('uint8').tofile(directory +"/" + sample_descriptor + '_velocity_regions.txt')
-
-toc = time.perf_counter()
-print("time elapsed: " + str(toc-tic) + " seconds" )
