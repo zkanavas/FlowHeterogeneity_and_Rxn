@@ -6,12 +6,12 @@ import pandas as pd
 import open3d as o3d
 
 #customize these for each sample
-sample_descriptor = "estaillades"
-imagesize =(650,650,650)
+sample_descriptor = "menke_ketton"
+imagesize =(922,902,911)
 datatype = 'float16'
 
 #data directory
-directory = os.path.normpath(r'C:\Users\zkana\Documents\FlowHeterogeneity_and_Rxn\Data')
+directory = os.path.normpath(r'E:\FlowHet_RxnDist')
 
 #data file location
 vel_magnitude_file = directory + "/" + sample_descriptor + "_velocity_magnitude.txt"

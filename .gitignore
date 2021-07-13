@@ -4,6 +4,9 @@ continuity_check.py
 path_check.py
 cc3d_example.py
 usrguid3.pdf
+*.bib
+*.pptx
+view_vel_image.py
 
 #Python specific ignores
 # Byte-compiled / optimized / DLL files
