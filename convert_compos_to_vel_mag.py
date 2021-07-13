@@ -8,9 +8,9 @@ import time
 >>>>>>> 3b369020e0e3821169ae6c79d8172e775d2a2193
 
 #customize these for each sample
-sample_descriptor = "menke_ketton"
-imagesize =(922,902,911)
-datatype = 'float8'
+sample_descriptor = "AH" # "AL" "BH" "BL" "SilKet"
+imagesize =(914,905,834) # (909,910,831) (926,916,799) (926,925,854) (946,946,822)
+datatype = 'float32'
 
 #data directory
 directory = os.path.normpath(r'E:\FlowHet_RxnDist')
@@ -20,7 +20,8 @@ directory = os.path.normpath(r'E:\FlowHet_RxnDist')
 # Uy_velfield = directory + '/Uy_estaillades.dat'
 # Uz_velfield = directory + '/Uz_estaillades.dat'
 # f = h5py.File(directory + '/' + sample_descriptor + ".mat") #use for .mat file type
-velocityfield = mat73.loadmat(directory + '/' + sample_descriptor + '.mat')
+# velocityfield = mat73.loadmat(directory + '/' + sample_descriptor + '.mat')
+velocityfield = np.fromfile(directory + '/' + sample_descriptor + '_Umag.raw')
 
 tic = time.perf_counter()
 
@@ -49,5 +50,5 @@ vel_magnitude = sum([Ux_array**2, Uy_array**2, Uz_array**2])**(1/2)
 #save magnitude file
 vel_magnitude.astype('float16').tofile(directory +"/" + sample_descriptor + '_velocity_magnitude.txt')
 
-toc = time.perf_counter()
-print("time elapsed: " + str(toc-tic) + " seconds" )
+# toc = time.perf_counter()
+# print("time elapsed: " + str(toc-tic) + " seconds" )
