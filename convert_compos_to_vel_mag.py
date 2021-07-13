@@ -1,7 +1,11 @@
 import os
 import numpy as np
+<<<<<<< HEAD
 import mat73
 
+=======
+import time
+>>>>>>> 3b369020e0e3821169ae6c79d8172e775d2a2193
 
 #customize these for each sample
 sample_descriptor = "menke_ketton"
@@ -17,6 +21,8 @@ directory = os.path.normpath(r'E:\FlowHet_RxnDist')
 # Uz_velfield = directory + '/Uz_estaillades.dat'
 # f = h5py.File(directory + '/' + sample_descriptor + ".mat") #use for .mat file type
 velocityfield = mat73.loadmat(directory + '/' + sample_descriptor + '.mat')
+
+tic = time.perf_counter()
 
 #load images
 #x-direction
@@ -42,3 +48,6 @@ vel_magnitude = sum([Ux_array**2, Uy_array**2, Uz_array**2])**(1/2)
 
 #save magnitude file
 vel_magnitude.astype('float16').tofile(directory +"/" + sample_descriptor + '_velocity_magnitude.txt')
+
+toc = time.perf_counter()
+print("time elapsed: " + str(toc-tic) + " seconds" )
