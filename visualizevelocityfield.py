@@ -7,23 +7,31 @@ import open3d as o3d
 from visual_utils import array_to_dataframe, array_to_RGB, numpy_to_ply, convert_to_structure, only_percolating_path
 import h5py
 import time
+import matplotlib.pyplot as plt
 
-plot_velocity_field = True
+#select what you want to image
+plot_velocity_field = False
 plot_structure = True
-plot_velocity_regions = True
-plot_percolating_path = True
+plot_velocity_regions = False
+plot_percolating_path = False
 
-sample_descriptor = "menke_ketton"
-imagesize =(922,902,911)
-datatype = 'float16'
+#customize the following for each sample
+sample_descriptor = "estaillades"
+#limit is ~650 voxels^3
+imagesize =(650,650,650)
+
+# sample_descriptor = "beadpack"
+# imagesize =(500,500,500)
+#datatype is uint8 for velocity regions and float16 for velocity magnitude
+datatype = 'uint8'
 
 tic = time.perf_counter()
 
 #data directory
 directory = os.path.normpath(r'E:\FlowHet_RxnDist')
 #data file location
-# file_location = directory + "/" + sample_descriptor + "_velocity_regions.txt"
-file_location = directory + "/" + sample_descriptor + "_velocity_magnitude.txt"
+file_location = directory + "/" + sample_descriptor + "_velocity_regions.txt"
+# file_location = directory + "/" + sample_descriptor + "_velocity_magnitude.txt"
 
 #load image
 npimg = np.fromfile(file_location, dtype=np.dtype(datatype)) 

@@ -6,6 +6,13 @@ cc3d_example.py
 usrguid3.pdf
 *.bib
 *.pptx
+*.html
+*.png
+averaging_rates.py
+HelloWorld.py
+open3d_example.py
+SilKet_cutoff.py
+workingwithrawfiles.py
 view_vel_image.py
 
 #Python specific ignores
