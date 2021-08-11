@@ -17,7 +17,12 @@ def gamma_distribution(mean,std,x):
     gamma_cdf = gammainc(k,(x/theta))/gamma(k)
     return gamma_cdf
 
-#def power_distribution():
+def power_distribution(mean, std, x): #using pareto distribution
+    xm = 1
+    #alpha must be > 1 for well-defined mean and > 3 for finite variance
+    alpha = ...
+    powerlaw_cdf = 1 - (xm/x)**alpha
+
 
 def normal_distribution(mean,std,x):
     normal_cdf = (1/2)*(1+erf((x-mean)/(std*(2)**(1/2))))
