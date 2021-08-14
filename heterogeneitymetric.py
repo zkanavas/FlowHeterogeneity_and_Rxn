@@ -16,18 +16,15 @@ df = pd.read_csv("flow_transport_rxn_properties.csv",header=0)
 directory = os.path.normpath(r'E:\FlowHet_RxnDist')
 for index,sample in enumerate(df.Sample_Name):
     fig, ax = plt.subplots()
-    #define extension
-    if sample == 'beadpack':# or sample == 'estaillades' or sample == 'menke_ketton':
-        ext = '.txt'
-    else:
-        continue #ext = '.raw'    
 
     #data file location
-    vel_magnitude_file = directory + "/" + sample + "_velocity_magnitude" + ext
+    vel_magnitude_file = directory + "/" + sample + "_velocity_magnitude.txt"
 
     #load velocity magnitude
     vel_magnitude = np.fromfile(vel_magnitude_file, dtype=np.dtype(datatype)) 
+    #remove structure - need to fix this bit
     vel_magnitude = vel_magnitude[vel_magnitude != 0]
+
     #calculate mean velocity
     mean_velocity = np.mean(vel_magnitude)
     std_velocity = np.std(vel_magnitude)
@@ -37,5 +34,5 @@ for index,sample in enumerate(df.Sample_Name):
     #calculate statistical distance between velocity distribution and normal distribution
     distance = stats.wasserstein_distance(vel_magnitude,normal)
 
-    print(sample,df.pc[index],distance)
+    print(sample,distance)
 
