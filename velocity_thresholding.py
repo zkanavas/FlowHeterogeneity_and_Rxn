@@ -4,23 +4,39 @@ import numpy as np
 from skimage.measure import label, regionprops, regionprops_table
 import pandas as pd
 import time
+import matplotlib.pyplot as plt
 
 # tic = time.perf_counter()
 
 #customize these for each sample
-# sample_descriptor = "menke_ketton"
-# imagesize =(922,902,911)
-# sample_descriptor = "estaillades"
-# imagesize =(650,650,650)
+
+
 # sample_descriptor = "SilKet" #"AH" #"AL" #"BH" #"BL"
 # imagesize = (946,946,822) #(914,905,834) #(909,910,831) #(926,916,799) #(926,925,854)
 # datatype = 'float32'
+
+# sample_descriptor = "beadpack"
+# imagesize = (500,500,500)
+# sample_descriptor = "estaillades"
+# imagesize =(650,650,650)
+# sample_descriptor = "Ketton_10003"
+# imagesize = (1000,1000,1000)
+# sample_descriptor = "AH"
+# imagesize = (914, 905, 834)
+# sample_descriptor = "AL"
+# imagesize = (909, 910, 831)
+# sample_descriptor = "BH"
+# imagesize = (926, 916, 799)
+# sample_descriptor = "BL"
+# imagesize = (926,925,854)
 # sample_descriptor = "menke_2017_est"
 # imagesize =(998,998,800)
-# sample_descriptor = "alkhulafi_silurian"
-# imagesize = (946, 946, 390)
-sample_descriptor = "menke_2017_est"
-imagesize = (998,998,800)
+# sample_descriptor = "menke_2017_ketton"
+# imagesize =(498,498,324)
+# sample_descriptor = "menke_2017_portland"
+# imagesize =(800,800,800)
+sample_descriptor = "menke_2017_ketton_3.6"
+imagesize =(499,499,450)
 datatype = 'float32'
 
 #data directory
@@ -98,11 +114,12 @@ def save(vel_normalized,percolation_threshold):
     #save thresholded velocity field
     vel_norm.astype('uint8').tofile(directory +"/" + sample_descriptor + '_velocity_regions.txt')
 
-# interval = np.logspace(-5,0,6)
-i = 1e-4
-# for i in interval:
-tic = time.perf_counter()
+# tolerance = np.logspace(-5,0,6)
+tolerance = 1e-2
+# for i in tolerance:
+# tic = time.perf_counter()
 percolation_threshold = np.max(vel_normalized)#*0.02
+
 upper_pt = percolation_threshold
 lower_pt = upper_pt/2
 stop = False
@@ -110,13 +127,16 @@ while not stop:
     print(upper_pt,lower_pt)
     if not checkbounds(vel_normalized,lower_pt):
         upper_pt_new = lower_pt
-        lower_pt -= (upper_pt-lower_pt)/2 #FIX
+        lower_pt -= (upper_pt-lower_pt)/2 
         upper_pt = upper_pt_new
     else:
-        if upper_pt - lower_pt < i:#1e-5:
+        difference = upper_pt - lower_pt
+        if difference < tolerance:
             print('final: ',lower_pt)
             save(vel_normalized,lower_pt)
             stop=True
-        else: lower_pt += (upper_pt-lower_pt)/2
-    toc = time.perf_counter()
-    print(i, "time elapsed: " + str(toc-tic) + " seconds" )
+        else: 
+            lower_pt += (upper_pt-lower_pt)/2
+
+# toc = time.perf_counter()
+# print("tolerance: ",tolerance, ", time elapsed: " + str(toc-tic) + " seconds" )

@@ -56,7 +56,7 @@ def normal_distribution(mean,std,x):
         return normal_cdf_func, normal_pdf
     else: return print('error in normal distribution')   
 
-x = np.linspace(1,2,1000)
+x = np.linspace(1e-3,1e3,100000)
 mean = 1.5
 std = 1.5
 
@@ -87,24 +87,25 @@ if plot == True:
     colors = ['green','orange','purple']
     fig, ax1 = plt.subplots()
     for ind, dist in enumerate(cdf_distributions):
-        # fig, (ax1,ax2)  = plt.subplots(1,2, figsize = [12.8, 4.8])
+        fig, (ax1,ax2)  = plt.subplots(1,2, figsize = [12.8, 4.8])
         ax1.plot(x,dist,label = labels[ind],color=colors[ind])
-    ax1.plot(x,normal_cdf,label='normal',color='blue')
-        # ax1.fill_between(x,normal_cdf,dist,color='yellow')
-    #     ax2.plot(x,pdf_distributions[ind],label = labels[ind],color=colors[ind])
-    # ax2.plot(x,normal_pdf,label='normal',color='blue')
+        ax1.plot(x,normal_cdf,label='normal',color='blue')
+        ax1.fill_between(x,normal_cdf,dist,color='yellow')
+        ax2.plot(x,pdf_distributions[ind],label = labels[ind],color=colors[ind])
+        ax2.plot(x,normal_pdf,label='normal',color='blue')
 
-    #general properties
-    ax1.loglog()
-    ax1.tick_params(axis='both',labelsize=14)
-    ax1.set_xlabel('x', fontsize=15)
-    ax1.set_ylabel('CDF',fontsize=15)
-    ax1.legend()
-    # ax2.loglog()
-    # ax2.tick_params(axis='both',labelsize=14)
-    # ax2.set_xlabel('x', fontsize=15)
-    # ax2.set_ylabel('PDF',fontsize=15)
-    # ax2.legend()
+        #general properties
+        ax1.loglog()
+        ax1.tick_params(axis='both',labelsize=14)
+        ax1.set_xlabel('x', fontsize=15)
+        ax1.set_ylabel('CDF',fontsize=15)
+        ax1.legend()
+        ax2.loglog()
+        ax2.tick_params(axis='both',labelsize=14)
+        ax2.set_xlabel('x', fontsize=15)
+        ax2.set_ylabel('PDF',fontsize=15)
+        ax2.legend()
 
-    plt.tight_layout()
-    plt.show()
+        plt.tight_layout()
+        plt.savefig(labels[ind]+"_normal_comp.png")
+        plt.close()

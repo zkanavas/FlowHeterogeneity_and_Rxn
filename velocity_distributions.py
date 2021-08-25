@@ -20,56 +20,64 @@ import pandas as pd
 # sample_descriptor = "alkhulafi_silurian"
 # imagesize = (946, 946, 390)
 # datatype = 'float16'
-
-load_structure = False
+plot = True
+load_structure = True
 #data directory
 directory = os.path.normpath(r'E:\FlowHet_RxnDist')
 
 #load data
-df = pd.read_csv('flow_transport_rxn_properties.csv',header=0)
-sample_descriptor = df['Sample_Name']
+# df = pd.read_csv('flow_transport_rxn_properties.csv',header=0)
+# sample_descriptor = df['Sample_Name']
 
-for sample in sample_descriptor:
-    fig,ax = plt.subplots()
+sample_descriptor = ["AL","AH","BL","BH"]
+imagesize = [(909,910,831),(914,905,834),(926,925,854),(926,916,799)]
+color = ['b--','b-','r--','r-']
+flowrate = [.1,.5,.1,.5]
+fig,ax = plt.subplots()
+for count,sample in enumerate(sample_descriptor):
+    # fig,ax = plt.subplots()
     #define extension type
-    if sample == 'AH' or sample == 'AL' or sample == 'BL' or sample == 'BH':
-        ext = '.raw'
-        datatype = 'float32'
-    else:
-        ext = '.txt'    
-        datatype = 'float16'
+    datatype = 'float32'
     #data file location
-    vel_magnitude_file = directory + "/" + sample + "_velocity_magnitude" + ext
+    vel_magnitude_file = directory + "/" + sample + "_velocity_magnitude.raw"
 
     #load images
     vel_magnitude = np.fromfile(vel_magnitude_file, dtype=np.dtype(datatype)) 
     #load structure - get into loop form
     if load_structure == True:
-        vel_magnitude = vel_magnitude.reshape((650,650,650))
-        structure_file = directory + "/" + sample + "_structure.dat"
-        structure = np.loadtxt(structure_file) #takes a long time, but using np.fromfile does not work!!!, may be better to save in different format like ASCII?
-        structure = structure.reshape((650,650,650))
+        vel_magnitude = vel_magnitude.reshape(imagesize[count])
+        structure_file = directory + "/" + sample + "_structure.raw"
+        structure = np.fromfile(structure_file,dtype=np.dtype('uint8'))
+        structure = structure.reshape(imagesize[count])
         #remove grains
-        vel_magnitude = vel_magnitude[structure != 1]
+        vel_magnitude = vel_magnitude[structure == 1]
     else:
         vel_magnitude = vel_magnitude[vel_magnitude != 0]
     #normalizing velocity field by mean
     mean = np.mean(vel_magnitude)
-    vel_magnitude /= mean
+    darcyvelocity = (flowrate[count])/(1000**2)
+    std = np.std(vel_magnitude)
+    var = std**2
+    print(sample,mean,var,std)
+    vel_magnitude /= darcyvelocity
 
     #make histogram
-    bins = 10 ** np.linspace(np.log10(np.min(vel_magnitude[vel_magnitude != 0])), np.log10(np.max(vel_magnitude)),num=15)
-    n,bins = np.histogram(vel_magnitude,density=True,bins = bins) 
-    densities = n*np.diff(bins)
-    #plot pdf
-    ax.plot(bins[:-1],densities, label = sample, linewidth = 2)
-
+    if plot == True:
+        bins = 10 ** np.linspace(np.log10(np.min(vel_magnitude[vel_magnitude != 0])), np.log10(np.max(vel_magnitude)),num=100)
+        n,bins = np.histogram(vel_magnitude,density=True,bins = bins) 
+        densities = n*np.diff(bins)
+        #plot pdf
+        ax.plot(bins[:-1],densities, color[count],label = sample, linewidth = 2)
+if plot == True:
     ax.semilogx()
     ax.tick_params(axis='both',labelsize=14)
-    ax.set_xlabel('V/<V>', fontsize=15)
+    # ax.set_xlim(1e-10,1e5)
+    ax.set_xlabel('V/VD', fontsize=15)
     ax.set_ylabel('PDF',fontsize=15)
     ax.legend()
     plt.tight_layout()
-    plt.savefig(sample+"_velocityPDF.png")
-    plt.close()
-# plt.show()
+    # plt.savefig(sample+"_velocityPDF.png")
+    # plt.close()
+    plt.show()
+# plt.savefig("velocity_distributions.png")
+# plt.close()
