@@ -29,14 +29,14 @@ import matplotlib.pyplot as plt
 # imagesize = (926, 916, 799)
 # sample_descriptor = "BL"
 # imagesize = (926,925,854)
-# sample_descriptor = "menke_2017_est"
-# imagesize =(998,998,800)
+sample_descriptor = "menke_2017_est"
+imagesize =(998,998,800)
 # sample_descriptor = "menke_2017_ketton"
 # imagesize =(498,498,324)
 # sample_descriptor = "menke_2017_portland"
 # imagesize =(800,800,800)
-sample_descriptor = "menke_2017_ketton_3.6"
-imagesize =(499,499,450)
+# sample_descriptor = "menke_2017_ketton_3.6"
+# imagesize =(499,499,450)
 datatype = 'float32'
 
 #data directory
@@ -103,6 +103,7 @@ def save(vel_normalized,percolation_threshold):
     props = pd.DataFrame(props)
     id_box = props['bbox-5'][props['bbox-2']==0] == imagesize[2]
     # print(percolation_threshold,props['area'][id_box.index[np.where(id_box)]])
+    print("number of existing paths: ", len(np.where(id_box)[0]))
     coords = props['coords'][id_box.index[np.where(id_box)]].tolist()
     #id velocity zones
     vel_norm[x_2,y_2,z_2] = 2 #disconnected high velocity region
@@ -112,31 +113,31 @@ def save(vel_normalized,percolation_threshold):
     #the leftovers are 0 and correspond to solid
 
     #save thresholded velocity field
-    vel_norm.astype('uint8').tofile(directory +"/" + sample_descriptor + '_velocity_regions.txt')
+    # vel_norm.astype('uint8').tofile(directory +"/" + sample_descriptor + '_velocity_regions.txt')
 
-# tolerance = np.logspace(-5,0,6)
-tolerance = 1e-2
-# for i in tolerance:
-# tic = time.perf_counter()
-percolation_threshold = np.max(vel_normalized)#*0.02
+tolerance = np.logspace(-5,0,6)
+# tolerance = [1]
+for i in tolerance:
+    tic = time.perf_counter()
+    percolation_threshold = np.max(vel_normalized)#*0.02
 
-upper_pt = percolation_threshold
-lower_pt = upper_pt/2
-stop = False
-while not stop:
-    print(upper_pt,lower_pt)
-    if not checkbounds(vel_normalized,lower_pt):
-        upper_pt_new = lower_pt
-        lower_pt -= (upper_pt-lower_pt)/2 
-        upper_pt = upper_pt_new
-    else:
-        difference = upper_pt - lower_pt
-        if difference < tolerance:
-            print('final: ',lower_pt)
-            save(vel_normalized,lower_pt)
-            stop=True
-        else: 
-            lower_pt += (upper_pt-lower_pt)/2
+    upper_pt = percolation_threshold
+    lower_pt = upper_pt/2
+    stop = False
+    while not stop:
+        print(upper_pt,lower_pt)
+        if not checkbounds(vel_normalized,lower_pt):
+            upper_pt_new = lower_pt
+            lower_pt -= (upper_pt-lower_pt)/2 
+            upper_pt = upper_pt_new
+        else:
+            difference = upper_pt - lower_pt
+            if difference < i:
+                print('final: ',lower_pt)
+                save(vel_normalized,lower_pt)
+                stop=True
+            else: 
+                lower_pt += (upper_pt-lower_pt)/2
 
-# toc = time.perf_counter()
-# print("tolerance: ",tolerance, ", time elapsed: " + str(toc-tic) + " seconds" )
+    toc = time.perf_counter()
+    print("tolerance: ",i, ", time elapsed: " + str(toc-tic) + " seconds" )

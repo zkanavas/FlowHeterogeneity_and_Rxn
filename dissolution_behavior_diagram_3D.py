@@ -8,10 +8,10 @@ import matplotlib.pyplot as plt
 
 plot = True
 df = pd.read_csv('flow_transport_rxn_properties.csv',header=0)
-
+# df.drop(3,axis=0,inplace=True)
 if plot == True:
-    fig = px.scatter_3d(df, x='Pe', y='Da', z='EMD',
-                color='behavior')
+    fig = px.scatter_3d(df, x='Pe', y='Da', z='Mm',
+                color='ratio')
     # fig.write_html("behaviordiagram_Mm_behavior.html")
     fig.show()
 

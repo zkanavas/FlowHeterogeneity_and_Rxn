@@ -11,8 +11,10 @@ import time
 # imagesize =(650,650,650)
 # sample_descriptor = "Ketton_10003"
 # imagesize = (1000,1000,1000)
-sample_descriptor = "AH"
-imagesize = (914, 905, 834)
+# sample_descriptor = "menke_ketton"
+# imagesize =(922,902,911)
+# sample_descriptor = "AH"
+# imagesize = (914, 905, 834)
 # sample_descriptor = "AL"
 # imagesize = (909, 910, 831)
 # sample_descriptor = "BH"
@@ -25,8 +27,8 @@ imagesize = (914, 905, 834)
 # imagesize =(498,498,324)
 # sample_descriptor = "menke_2017_portland"
 # imagesize =(800,800,800)
-# sample_descriptor = "menke_2017_ketton_3.6"
-# imagesize =(499,499,450)
+sample_descriptor = "menke_2017_ketton_3.6"
+imagesize =(499,499,450)
 
 datatype = 'uint8'
 

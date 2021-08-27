@@ -50,15 +50,18 @@ for count,sample in enumerate(sample_descriptor):
         structure = np.fromfile(structure_file,dtype=np.dtype('uint8'))
         structure = structure.reshape(imagesize[count])
         #remove grains
+        total_volume = vel_magnitude.size
         vel_magnitude = vel_magnitude[structure == 1]
+        porosity = vel_magnitude.size/total_volume
     else:
         vel_magnitude = vel_magnitude[vel_magnitude != 0]
+    # print((sum(vel_magnitude*5.2e-6))/(1000**2))
     #normalizing velocity field by mean
     mean = np.mean(vel_magnitude)
-    darcyvelocity = (flowrate[count])/(1000**2)
-    std = np.std(vel_magnitude)
-    var = std**2
-    print(sample,mean,var,std)
+    darcyvelocity = mean*porosity #NO! average LINEAR velocity, must be in direction of flow (z)
+    # std = np.std(vel_magnitude)
+    # var = std**2
+    # print(sample,mean,var,std)
     vel_magnitude /= darcyvelocity
 
     #make histogram
