@@ -8,6 +8,7 @@ usrguid3.pdf
 *.pptx
 *.html
 *.png
+*.csv
 averaging_rates.py
 HelloWorld.py
 open3d_example.py
