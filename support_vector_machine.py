@@ -50,7 +50,7 @@ for heterogeneity in heterogeneities:
 
     scaler = StandardScaler()
     if heterogeneity == 'pc':
-        svc = SVC(kernel = 'poly',C=1,gamma=1,degree=1,coef0=0)
+        svc = SVC(kernel = 'poly',C=100,gamma=10,degree=1,coef0=0)
         scaler.fit(np.column_stack([x,z]))
         attributes = scaler.transform(np.column_stack([x,z]))
     elif heterogeneity == 'Mm':
@@ -58,7 +58,7 @@ for heterogeneity in heterogeneities:
         scaler.fit(np.array(z).reshape(-1, 1))
         attributes = scaler.transform(np.array(z).reshape(-1, 1))
     elif heterogeneity == 'EMD':
-        svc = SVC(kernel = 'rbf',C=10,gamma=1)
+        svc = SVC(kernel = 'rbf',C=100,gamma=1)
         scaler.fit(np.column_stack([x,z]))
         attributes = scaler.transform(np.column_stack([x,z]))
 

@@ -6,15 +6,30 @@ from sklearn.linear_model import LogisticRegression
 import numpy as np
 import matplotlib.pyplot as plt
 
-plot = True
+plot = False
 df = pd.read_csv('flow_transport_rxn_properties.csv',header=0)
-# df.drop(3,axis=0,inplace=True)
+df.drop(3,axis=0,inplace=True)
+x = df.Mm.values * df.EMD.values
 if plot == True:
-    fig = px.scatter_3d(df, x='Pe', y='Da', z='Mm',
-                color='ratio')
+    fig = px.scatter_3d(df, x=x, y='Pe', z='Da',log_x=True,
+                color='behavior')
     # fig.write_html("behaviordiagram_Mm_behavior.html")
     fig.show()
 
+behavior = df.behavior.values
+colors = ['red' if beh == 'uniform' else 'blue' for beh in behavior]
+x = df.Mm.values
+y=df.EMD.values
+z = df.pc.values
+rxn = df.ratio.values
+y_trans = np.log(y)
+# y_trans = np.exp(y)/(1+np.exp(y))
+fig, ax = plt.subplots()
+x_trans = np.exp(x)/(1+np.exp(x))
+
+ax.scatter(y_trans*x_trans,rxn,c=colors)
+
+plt.show()
 # X = np.vstack([df.Pe.values,df.Da.values,df.Mm.values]).transpose()
 # Y = df.behavior.values
 
