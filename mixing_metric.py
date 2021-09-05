@@ -27,9 +27,21 @@ import time
 # imagesize =(498,498,324)
 # sample_descriptor = "menke_2017_portland"
 # imagesize =(800,800,800)
-sample_descriptor = "menke_2017_ketton_3.6"
-imagesize =(499,499,450)
+# sample_descriptor = "menke_2017_ketton_3.6"
+# imagesize =(499,499,450)
+# sample_descriptor = "fracturedB"
+# imagesize = (300,300,400)
+# sample_descriptor = "Sil_HetA_High_Scan1"
+# imagesize =(839,849,812)
 
+# sample_descriptor = "Sil_HetA_Low_Scan1"
+# imagesize =(936,936,787)
+
+# sample_descriptor = "Sil_HetB_High_Scan1"
+# imagesize =(911,914,829)
+
+sample_descriptor = "Sil_HetB_Low_Scan1"
+imagesize =(903,889,785)
 datatype = 'uint8'
 
 tic = time.perf_counter()

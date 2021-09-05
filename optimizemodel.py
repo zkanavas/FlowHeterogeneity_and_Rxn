@@ -22,8 +22,8 @@ def calculate_rxn(weights,*inputs,returnr2=False):
     w_MmPe = weights[13]
     w_MmDa = weights[14]
     w_PeDa = weights[15]
-    # alpha = weights[16]
-    # beta = weights[17]
+    alpha = weights[16]
+    beta = weights[17]
     
     df = inputs[0]
     ratios = df.ratio.values
@@ -46,8 +46,8 @@ def calculate_rxn(weights,*inputs,returnr2=False):
         response = w0 + w_pc*pc + w_EMD*EMD + w_Mm*Mm + w_Pe*Pe + w_Da*Da + w_pcEMD*(pc*EMD) + w_pcMm*(pc*Mm) + w_pcPe*(pc*Pe) + w_pcDa*(pc*Da) + w_EMDMm*(EMD*Mm) + w_EMDPe*(EMD*Pe) + w_EMDDa*(EMD*Da) + w_MmPe*(Mm*Pe) + w_MmDa*(Mm*Da) + w_PeDa*(Pe*Da)
 
         #link function
-        # response = beta*np.exp(-response*alpha)
-        # response = beta*response**(alpha)
+        response = beta*np.exp(-response*alpha)
+        # response = beta*response**(-alpha)
         # response = (np.exp(-response)/(1+np.exp(-response)))
         # response = np.log(response)
         # response = 1/response
@@ -73,12 +73,12 @@ df.Mm = df.Mm/np.max(df.Mm)
 df.Pe = df.Pe/np.max(df.Pe)
 df.Da = df.Da/np.max(df.Da)
 
-numberofparams=16
+numberofparams=18
 
 init = np.identity(numberofparams)
 
 #set weight bounds
-bounds = [(-1,1)for x in range(numberofparams)]
+bounds = [(0,1)for x in range(numberofparams)]
 
 samples = df.index.tolist()
 inputs =(df,samples)
@@ -86,7 +86,7 @@ inputs =(df,samples)
 # adding contraint, requires the number of non-zero attributes in model to be less than or equal to 3
 # def constr(w):
 #     return np.count_nonzero(w)
-# nlc = NonlinearConstraint(constr,0,18) #number of nonzero w's must be less than ...
+# nlc = NonlinearConstraint(constr,1,18) #number of nonzero w's must be less than ...
 res = differential_evolution(calculate_rxn, bounds=bounds,
                             seed=1,mutation=(0.5,1),
                             recombination=0.9,strategy='best1bin',

@@ -6,8 +6,18 @@ import matplotlib.pyplot as plt
 
 
 #customize these for each sample
-sample_descriptor = "Ketton_10003"
-imagesize =(1000,1000,1000)
+# sample_descriptor = "Sil_HetA_High_Scan1"
+# imagesize =(839,849,812)
+
+# sample_descriptor = "Sil_HetA_Low_Scan1"
+# imagesize =(936,936,787)
+
+# sample_descriptor = "Sil_HetB_High_Scan1"
+# imagesize =(911,914,829)
+
+sample_descriptor = "Sil_HetB_Low_Scan1"
+imagesize =(903,889,785)
+
 datatype = 'float64'
 
 #data directory

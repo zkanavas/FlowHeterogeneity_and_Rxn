@@ -11,17 +11,17 @@ import sklearn.metrics as metrics
 # imagesize = (946,946,822) #(914,905,834) #(909,910,831) #(926,916,799) #(926,925,854)
 datatype = 'float32'
 load_structure = False
-plot = True
+plot = False
 df = pd.read_csv("flow_transport_rxn_properties.csv",header=0)
-sample_descriptor = df['Sample_Name']
-# sample_descriptor = ["Ketton_10003","menke_ketton","menke_2017_est","menke_2017_ketton","menke_2017_portland","menke_2017_ketton_3.6"]
-# imagesize = [(1000,1000,1000),(922,902,911),(998,998,800),(498,498,324),(800,800,800),(499,499,450)]
+# sample_descriptor = df['Sample_Name']
+sample_descriptor = ["fracturedB","Sil_HetA_High_Scan1","Sil_HetA_Low_Scan1","Sil_HetB_High_Scan1","Sil_HetB_Low_Scan1"]
+imagesize = [(300,300,400),(839,849,812),(936,936,787),(911,914,829),(903,889,785)]
 # sample_descriptor = ["beadpack","estaillades"]
 # imagesize = [(500,500,500),(650,650,650)]
 #data directory
 directory = os.path.normpath(r'E:\FlowHet_RxnDist')
 for index,sample in enumerate(sample_descriptor):
-    if sample != "menke_ketton": continue
+    # if sample != "menke_ketton": continue
 
     #data file location
     vel_magnitude_file = directory + "/" + sample + "_velocity_magnitude.raw"
@@ -42,16 +42,16 @@ for index,sample in enumerate(sample_descriptor):
     # mean = np.mean(vel_magnitude)
     # std = np.std(vel_magnitude)
     # print(sample,mean,std)
-    mean = df['mu_v'][index]
+    # mean = df['mu_v'][index]
+    mean = df.loc[df.Sample_Name == sample].mu_v.values
     vel_magnitude /= mean
     mean = np.mean(vel_magnitude)
     std = np.std(vel_magnitude)
-    # print(sample,mean,std)
+    print(sample,mean,std)
 
     pdf,velmag_bins = np.histogram(vel_magnitude,density=True,bins = 1000) 
     cumulsum = np.cumsum(pdf)
     velmag_cdf = cumulsum/cumulsum[-1]
-    
 
     #generate homogeneous (Gaussian) distribution
     normal = np.random.normal(loc=mean,scale = std, size=vel_magnitude.size)
