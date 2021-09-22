@@ -3,13 +3,9 @@ from numpy import random
 from optimizemodel import calculate_rxn,generate_initial_population
 import pandas as pd
 from scipy.optimize import differential_evolution
+from sklearn.model_selection import KFold
+import matplotlib.pyplot as plt
 
-# #best so far
-# aic = (9/18) - 0.8935
-
-# for i in range(1,18):
-#     r2 = -1*aic+ (i/18)
-# randomstate = 2021
 
 #import data
 df = pd.read_csv('flow_transport_rxn_properties.csv',header=0,index_col=0)
@@ -27,7 +23,7 @@ df.Da = df.Da/np.max(df.Da)
 link = 'power' #identity, log, power, inverse
 # for link in links:
 if link == 'power': 
-    numberofparams=17
+    numberofparams=16
     lb=0
 elif link == 'identity':
     numberofparams = 16
@@ -40,30 +36,33 @@ else: print('link label invalid')
 #set weight bounds
 bounds = [(lb,10)for x in range(numberofparams)]
 
+# randomstates = np.random.randint(2,4000,500)
+randomstate=[101]#[2102]
+np.random.seed(randomstate)
+
 samples = df.index.tolist()
 ratios = np.asarray([df.loc[sample]['ratio'] for sample in samples])
-inputs =(df,samples,link,ratios)
-
+inputs =(df,samples,link,ratios)    
+init = generate_initial_population(numberofparams,inputs)
 w = [0.,10, 0.,10,0.,0., 0.,0.,0.,0.,0.,0.,0.,0.,0.,0.]
-r2,aic = calculate_rxn(w,*inputs,returnr2=True)
-print(link)
-print(w)
-print('r2: ', r2, ', aic: ',aic)
-
-# randomstates = np.random.randint(2,4000,500)
-randomstates=[2102]
+init = np.row_stack((init,np.asarray(w)))
 # r2s = []
 # aics = []
 # solutions = []
 # non_zeros = []
 
-for count,randomstate in enumerate(randomstates):
-    print('loop ',count)
-
-    np.random.seed(randomstate)
-
-    init = generate_initial_population(numberofparams,inputs)
-    # init = np.identity(numberofparams)
+kfold = KFold(12,shuffle=True,random_state=1)
+fold = 1
+powers=[]
+for train_index, test_index in kfold.split(samples):
+    
+    trainingset, validatingset = np.array(samples)[train_index], np.array(samples)[test_index]
+    
+    ratios = np.asarray([df.loc[sample]['ratio'] for sample in trainingset])
+    
+    inputs =(df,trainingset,link,ratios)
+    
+    # init = generate_initial_population(numberofparams,inputs)
 
     res = differential_evolution(calculate_rxn, bounds=bounds,
                                 seed=1,mutation=(0.5,1),
@@ -73,18 +72,23 @@ for count,randomstate in enumerate(randomstates):
                                 # constraints=nlc,
                                 args=inputs)
     # print(res)
+    
+    #check results on whole set
+    ratios = np.asarray([df.loc[sample]['ratio'] for sample in samples])
+    inputs =(df,samples,link,ratios)
+
     w =res.x
+    # powers.append(w[16])
     no_zero = np.count_nonzero(w)
+
     r2,aic = calculate_rxn(w,*inputs,returnr2=True)
-    print(link)
+
+    print(link, str(fold))
     print(w)
     print('r2: ', r2, ', aic: ',aic, ', nonzeros: ',no_zero)
-
-        # r2s.append(r2)
-        # aics.append(aic)
-        # solutions.append(w)
-        # non_zeros.append(no_zero)
-
-    # data = {'seed':randomstates,'r2':r2s,'aic':aics,'solution':solutions,'numbernonzeros':non_zeros}
-    # solution_df = pd.DataFrame(data=data)
-    # solution_df.to_csv("modelopt_randseeds.csv")
+    fold +=1
+# fig, ax = plt.subplots()
+# ax.hist(powers,bins=3,ec='darkblue')
+# ax.set_xlabel('Power')
+# ax.set_ylabel('Count')
+# plt.show()

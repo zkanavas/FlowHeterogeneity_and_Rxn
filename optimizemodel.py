@@ -5,9 +5,9 @@ from scipy.optimize import differential_evolution,NonlinearConstraint
 
 def calculate_rxn(weights,*inputs,returnr2=False):
     df = inputs[0]
-    ratios = df.ratio.values
     Samples = inputs[1]
     link = inputs[2]
+    ratios = inputs[3]
 
     #assign weights
     w0 = weights[0]
@@ -26,10 +26,9 @@ def calculate_rxn(weights,*inputs,returnr2=False):
     w_MmPe = weights[13]
     w_MmDa = weights[14]
     w_PeDa = weights[15]
-    if link == 'exp':
-        # alpha = weights[16]
-        beta = weights[16]
-    
+    # if link != 'identity' and link != 'log':
+    # if link == 'power':
+    #     alpha = weights[16]    
     
     predictions = []
     for sample in Samples:
@@ -41,40 +40,42 @@ def calculate_rxn(weights,*inputs,returnr2=False):
         Da = df.loc[sample]['Da']
 
         #responses: behavior, rxn ratio
-        behavior = df.loc[sample]['behavior']
-        rxnratio = df.loc[sample]['ratio']
+        # behavior = df.loc[sample]['behavior']
+        # rxnratio = df.loc[sample]['ratio']
 
         #create model
         response = w0 + w_pc*pc + w_EMD*EMD + w_Mm*Mm + w_Pe*Pe + w_Da*Da + w_pcEMD*(pc*EMD) + w_pcMm*(pc*Mm) + w_pcPe*(pc*Pe) + w_pcDa*(pc*Da) + w_EMDMm*(EMD*Mm) + w_EMDPe*(EMD*Pe) + w_EMDDa*(EMD*Da) + w_MmPe*(Mm*Pe) + w_MmDa*(Mm*Da) + w_PeDa*(Pe*Da)
-
-        #link function
-        if link == 'exp': response = beta*np.exp(-response)#*alpha)
-        elif link == 'identity': response = response
-        # response = beta*response**(-alpha)
-        # response = (np.exp(-response)/(1+np.exp(-response)))
-        # if link =='ln':  response = np.log(response)
-        # if link =='inverse': response = 1/response
-
         predictions.append(response)
+
+    #link function
+    if link == 'identity': predictions = predictions
+    # elif link == 'log': predictions = [(1/alpha)*np.exp(-x/alpha) for x in predictions]
+    elif link == 'log': predictions = [np.exp(-x) for x in predictions]
+    elif link == 'inverse': predictions = [1/x for x in predictions]
+    elif link == 'power': predictions = [x**(-1.5) for x in predictions]
+    else: return 'link label invalid'
+
     mean_ratio = np.mean(ratios)
     r2 = 1 - (np.sum((predictions-ratios)**2))/(np.sum((ratios-mean_ratio)**2))
     # print(r2)
-    aic = (np.count_nonzero(weights)/len(weights)) - r2
+    log_likelihood = np.sum(-1*((ratios/predictions)+np.log(predictions)))
+    nonzer0s = np.count_nonzero(weights)
+    # if link == 'power': nonzer0s -= 1
+    aic = 2*(nonzer0s) - 2*log_likelihood
     # if r2 > 0:
-    #     aic = 2*(np.count_nonzero(weights)/len(weights)) - 2*np.log(r2)
+    #     aic = 2*(np.count_nonzero(weights)) - 2*np.log(r2)
     # else: aic = 1000
     if returnr2 == False: return aic#r2*-1
     elif returnr2 == True: 
-        # print(np.count_nonzero(weights)) 
         return r2,aic
 
 def generate_uniform(numberofparams):
     uniform = np.zeros(numberofparams)
-    uniform = [round(x,2) for x in np.random.uniform(0, 1, size=(numberofparams))]
+    uniform = [round(x,2) for x in np.random.uniform(0, 10, size=(numberofparams))]
     for x in np.random.choice(numberofparams,np.random.randint(7,numberofparams),replace=False): 
         uniform[x] = 0
     if numberofparams == 17:
-        uniform[16] = round(np.random.uniform(0,1),2)
+        uniform[16] = round(np.random.uniform(1e-2,10),2)
         # uniform[17] = round(np.random.uniform(0,1),2)
     return uniform
 

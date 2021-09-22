@@ -27,7 +27,7 @@ df.Da = df.Da/np.max(df.Da)
 link = 'power' #identity, log, power, inverse
 # for link in links:
 if link == 'power': 
-    numberofparams=17
+    numberofparams=16
     lb=0
 elif link == 'identity':
     numberofparams = 16
@@ -44,25 +44,22 @@ samples = df.index.tolist()
 ratios = np.asarray([df.loc[sample]['ratio'] for sample in samples])
 inputs =(df,samples,link,ratios)
 
-w = [0.,10, 0.,10,0.,0., 0.,0.,0.,0.,0.,0.,0.,0.,0.,0.]
-r2,aic = calculate_rxn(w,*inputs,returnr2=True)
-print(link)
-print(w)
-print('r2: ', r2, ', aic: ',aic)
 
-# randomstates = np.random.randint(2,4000,500)
-randomstates=[2102]
+randomstates = np.random.randint(2,4000,500)
+# randomstates=[2102]
 # r2s = []
 # aics = []
 # solutions = []
 # non_zeros = []
-
+solution_df = pd.DataFrame()
 for count,randomstate in enumerate(randomstates):
     print('loop ',count)
 
     np.random.seed(randomstate)
 
     init = generate_initial_population(numberofparams,inputs)
+    w = [0.,10, 0.,10,0.,0., 0.,0.,0.,0.,0.,0.,0.,0.,0.,0.]
+    init = np.row_stack((init,np.asarray(w)))
     # init = np.identity(numberofparams)
 
     res = differential_evolution(calculate_rxn, bounds=bounds,
@@ -74,12 +71,13 @@ for count,randomstate in enumerate(randomstates):
                                 args=inputs)
     # print(res)
     w =res.x
-    no_zero = np.count_nonzero(w)
-    r2,aic = calculate_rxn(w,*inputs,returnr2=True)
-    print(link)
-    print(w)
-    print('r2: ', r2, ', aic: ',aic, ', nonzeros: ',no_zero)
 
+    r2,aic = calculate_rxn(w,*inputs,returnr2=True)
+
+    solution_gof = np.append(w,(r2,aic))
+    solution = pd.DataFrame(solution_gof.reshape(1,-1))
+    solution_df = solution_df.append(solution)
+solution_df.to_csv('seedsens_power.csv',index=False)
         # r2s.append(r2)
         # aics.append(aic)
         # solutions.append(w)
