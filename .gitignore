@@ -9,12 +9,18 @@ usrguid3.pdf
 *.html
 *.png
 *.csv
+Sil_HetA_High_Scan1
+Sil_HetA_High_Scan1.mhd
+Sil_HetA_High_Scan1.raw
 averaging_rates.py
 HelloWorld.py
 open3d_example.py
 SilKet_cutoff.py
 workingwithrawfiles.py
 view_vel_image.py
+*.fig
+*.m
+*.JPG
 
 #Python specific ignores
 # Byte-compiled / optimized / DLL files
