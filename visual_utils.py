@@ -6,9 +6,9 @@ import os
 
 def array_to_dataframe(a,sliceby=1):
     x, y, z = a.shape
-    coords = np.column_stack((np.repeat(np.arange(x), y*z),  # z-column
-                              np.tile(np.repeat(np.arange(x), y), z), # y-column
-                              np.tile(np.tile(np.arange(x), y), z)))  # x-column
+    coords = np.column_stack((np.repeat(np.arange(z), y*x),  # z-column
+                              np.tile(np.repeat(np.arange(z), y), x), # y-column
+                              np.tile(np.tile(np.arange(z), y), x)))  # x-column
     coords = coords[::sliceby,:] #reduce number of points to show
     color = a.reshape(x*y*z, -1)
     color = color[::sliceby,:] #reduce number of points to show
@@ -32,7 +32,7 @@ def array_to_RGB(a,colormap="redness"):
             colorscale[ind,:] = np.array(interpolate(ele)).flatten()
     return colorscale
 
-def numpy_to_ply(coordinates,color,file_name="Ux_pcd.ply",overwrite=False,colormap = "turbo"):
+def numpy_to_ply(coordinates,color,file_name,overwrite,colormap = "turbo"):
     if os.path.isfile(file_name): #if file exists
         if not overwrite: #if I don't want to overwrite it
             return o3d.io.read_point_cloud(file_name)
@@ -80,16 +80,24 @@ def binary_colormap(a):
 def segmented_colormap(a):
     colorscale = np.zeros((len(a),3)) #default is black
     for i,k in enumerate(a):
-        if k == 3:
+        if k == 4:
+            colorscale[i] = (0.2,0.3,0.3) #gray
+        elif k == 3:
             colorscale[i] = (1,0,0) #red
         elif k == 2:
-            colorscale[i] = (1,1,1) #white
+            colorscale[i] = (1,0.6,0) #orange (1,1,1) #white
         elif k == 1:
             colorscale[i] = (0,0,1) #blue
     return colorscale
 
 def only_percolating_path(coord,color,):
-    ind_remove = np.where(color != 3)[0]
+    ind_remove = np.where(np.logical_and(color != 3,color != 4))[0]
+    coord = np.delete(coord, ind_remove, axis = 0)
+    color = np.delete(color, ind_remove, axis = 0)
+    return coord,color
+
+def high_velocity_region(coord,color,):
+    ind_remove = np.where(np.logical_or(color == 1,color == 0))[0]
     coord = np.delete(coord, ind_remove, axis = 0)
     color = np.delete(color, ind_remove, axis = 0)
     return coord,color
@@ -118,4 +126,31 @@ if __name__ == "__main__":
     binarized_coord, binarized_color = convert_to_structure(out_coords,out_color)
     assert len(out_coords) - len(binarized_coord) == len(np.where(a != 0)[0])
 
+def add_edges(a):
+    x_max,y_max,z_max = a.shape
+    x_max -= 1
+    y_max -= 1
+    z_max -= 1
+    a[:,0,0] = 4
+    a[:,0,z_max] = 4
+    a[:,y_max,0] = 4
+    a[:,y_max,z_max] = 4
+    a[0,:,0] = 4
+    a[0,:,z_max] = 4
+    a[x_max,:,0] = 4
+    a[x_max,:,z_max] = 4
+    a[0,0,:] = 4
+    a[0,y_max,:] = 4
+    a[x_max,0,:] = 4
+    a[x_max,y_max,:] = 4
+    return a
 
+def make_movie(pcd):
+    vis = o3d.visualization.Visualizer()
+    def rotate_view(vis):
+        ctr = vis.get_view_control()
+        ctr.rotate(3.0,0.0)
+        return False
+
+    o3d.visualization.draw_geometries_with_animation_callback([pcd],
+                                                              rotate_view)
