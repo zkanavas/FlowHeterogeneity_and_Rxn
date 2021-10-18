@@ -4,14 +4,9 @@ from scipy.optimize import curve_fit
 import numpy as np
 import math
 from scipy.special import gamma, gammainc, erf
-
-df = pd.read_csv('flow_transport_rxn_properties.csv',header=0,index_col=0)
-df.drop("menke_ketton",axis=0,inplace=True)
-ratio = df.ratio.values.tolist()
-
-y,x = np.histogram(ratio,density=True,bins=5) 
-x = x[:-1]
-mean = np.mean(y)
+import scipy.stats as stats
+import statsmodels.api as sm
+# import pylab
 
 def gaussian_dist(x,b,a): return (1/(a*(2*3.14)**(1/2)))*np.exp((-1/2)*((x-b)/a)**2)
 
@@ -23,7 +18,7 @@ def geometric_dist(x,b): return((1-b)**(x-1)*b)
 
 def neg_binomial_dist(x,b,a): return ((math.factorial(x+b-1)/(math.factorial(x)*(math.factorial(b-1))))*(1-a)**x*a**b)
 
-def exponential_dist(x,b,a): return ((1/a)*np.exp(-(x-b)/a))
+def exponential_dist(x,a): return ((1/a)*np.exp(-x/a))
 
 def gamma_dist(x,b,a): return ((1/(gamma(b)*a**b))*(x**(b-1))*(math.e**(-x*a)))
 
@@ -31,16 +26,18 @@ def inv_normal_dist(x,b,a): return ((b/(2*math.pi*x**3))**(1/2)*np.exp(-((b*(x-a
 
 def curvefit_plot(dist,x,y,label,color,fig,ax):
     
-    w,cov = curve_fit(dist,x,y,maxfev=10000,p0=(1,1))
+    w,cov = curve_fit(dist,x,y,maxfev=10000)
     print(w)
-    # if label == 'geometric': y_pred = dist(x,w)
-    # else: 
-    y_pred = dist(x,w[0],w[1])
+    if label == 'exponential': y_pred = dist(x,w)
+    else: 
+        y_pred = dist(x,w[0],w[1])
     r2 = 1 - (np.sum((y_pred-y)**2))/(np.sum((y-mean)**2))
     line = np.arange(np.min(x),np.max(x),.001)    
     ax.scatter(x,y,c='k')
     lbl = label + " r2: "+str(round(r2,2))
-    ax.plot(line,dist(line,w[0],w[1]),label=lbl,lw=3,c=color)
+    if label == 'exponential': ax.plot(line,dist(line,w),label=lbl,lw=3,c=color)
+    else:
+        ax.plot(line,dist(line,w[0],w[1]),label=lbl,lw=3,c=color)
     # ax.text(np.max(x),np.max(y),"r2: "+str(round(r2,2)),ha='right')
     # ax.set_title(label)
     # ax.set_xlabel('rxn ratio')
@@ -49,19 +46,31 @@ def curvefit_plot(dist,x,y,label,color,fig,ax):
     # plt.show()
     # fig.savefig(label+"dist_fit.png")
 
-colors = ['r','forestgreen','indigo']#,'khaki']#,'mango']#,'forest','cyan','brown']
+df = pd.read_csv('flow_transport_rxn_properties.csv',header=0,index_col=0)
+df.drop("menke_ketton",axis=0,inplace=True)
+ratio = np.log(df.ratio.values)
+# ratio = df.ratio.values
+bins = [2,4,6,8,10]
+bin_= 4
+# for bin_ in bins:
+y,x = np.histogram(ratio,density=True,bins=bin_) 
+x = x[:-1]
+mean = np.mean(y)
 
-dists = [gaussian_dist,exponential_dist,inv_normal_dist]
+# colors = ['r','forestgreen','indigo']#,'khaki']#,'mango']#,'forest','cyan','brown']
 
-labels = ['normal','exponential','inverse normal']
+# dists = [gaussian_dist,exponential_dist,inv_normal_dist]
 
-fig,ax = plt.subplots()
-for dist,color,label in zip(dists,colors,labels):
-    curvefit_plot(dist,x,y,label,color,fig,ax)
-ax.set_xlabel('rxn ratio')
-ax.set_ylabel('PDF')
-ax.legend()
-fig.tight_layout()
+# labels = ['normal','exponential','inverse normal']
+
+# fig,ax = plt.subplots()
+sm.qqplot(ratio, line='s')#,dist=stats.gamma(a=1))
+# for dist,color,label in zip(dists,colors,labels):
+#     curvefit_plot(dist,x,y,label,color,fig,ax)
+# ax.set_xlabel('rxn ratio')
+# ax.set_ylabel('PDF')
+# ax.legend()
+# fig.tight_layout()
 plt.show()
 # fig,(ax1,ax2) = plt.subplots(1,2,sharey=True)
 
