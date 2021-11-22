@@ -1,21 +1,24 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-sensitivityresults = pd.read_csv('formattedseedsenssol.csv',header=0)
-sensitivityresults.drop(['Pe','MmPe','pcPe'],axis=1,inplace=True)
-cols = sensitivityresults.columns.tolist()
-removecols = ['seed','aic','r2','aic_quantile','r2_quantile']
-[cols.remove(col) for col in removecols]
-fig, ax = plt.subplots()
+sensresults = pd.read_csv('seedsens_power.csv')
+print(any(sensresults['1'] == 0))
 
-pd.plotting.parallel_coordinates(sensitivityresults.sort_values('r2_quantile',ascending=False),'r2_quantile',cols=cols,color = ['red','yellow','green'],ax=ax,alpha=0.5)
-# pd.plotting.parallel_coordinates(sensitivityresults.sort_values('aic_quantile',ascending=False),'aic_quantile',cols=cols,color = ['red','yellow','green'],ax=ax[1],alpha=0.5)
-ax.set_ylabel('Coefficient Value',fontsize=15)
-ax.tick_params('both',labelsize=15)
-ax.legend(fontsize=14,loc='upper left',bbox_to_anchor=(1, 1))
-fig.tight_layout()
+# sensitivityresults = pd.read_csv('formattedseedsenssol.csv',header=0)
+# sensitivityresults.drop(['Pe','MmPe','pcPe'],axis=1,inplace=True)
+# cols = sensitivityresults.columns.tolist()
+# removecols = ['seed','aic','r2','aic_quantile','r2_quantile']
+# [cols.remove(col) for col in removecols]
+# fig, ax = plt.subplots()
 
-plt.show()
+# pd.plotting.parallel_coordinates(sensitivityresults.sort_values('r2_quantile',ascending=False),'r2_quantile',cols=cols,color = ['red','yellow','green'],ax=ax,alpha=0.5)
+# # pd.plotting.parallel_coordinates(sensitivityresults.sort_values('aic_quantile',ascending=False),'aic_quantile',cols=cols,color = ['red','yellow','green'],ax=ax[1],alpha=0.5)
+# ax.set_ylabel('Coefficient Value',fontsize=15)
+# ax.tick_params('both',labelsize=15)
+# ax.legend(fontsize=14,loc='upper left',bbox_to_anchor=(1, 1))
+# fig.tight_layout()
+
+# plt.show()
 
 # index = sensitivityresults.aic.idxmin()
 # print(sensitivityresults.iloc[index])

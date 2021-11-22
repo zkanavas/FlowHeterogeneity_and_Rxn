@@ -30,32 +30,14 @@ def compute_prediction(min_pc,max_pc,min_Pe,max_Pe):
     color_list = []
     for Pe in np.linspace(min_Pe,max_Pe):
         for pc in np.linspace(min_pc,max_pc):
-            # color_list.append(single_predictor(-2.38,-0.30,5.42e-4,pc,Pe)) #2-model
-            color_list.append(single_predictor(-2.69,-0.24,0.014,pc,Pe)) #3-model
+            color_list.append(single_predictor(-2.38,-0.30,5.42e-4,pc,Pe)) #2-model
+            # color_list.append(single_predictor(-2.69,-0.24,0.014,pc,Pe)) #3-model
     return color_list
-
-if plot_predvsobs == True:
-    #create figures
-    fig, ax = plt.subplots()
-
-    # ax1[0].scatter(df.ratio,predictor(-2.69,-0.24,0.014,df,df.Vol_hv))
-    # ax1[0].title('y ~ exp(1+ pc + Pe*Vol)')
-
-    # ax1[1].scatter()
-    # ax1[2].title('y ~ exp(1+ pc + Pe*SA)')
-
-    ax.scatter(df.ratio,predictor(-2.38,-0.30,5.42e-4,df,np.ones(len(df.Pe))))
-    # ax2[0].set_title('y ~ exp(1+ pc + Pe)')
-
-    # ax2[1].scatter()
-    # ax2[1].title('y ~ exp(1+ pc + Pe*SSA)')
-    # plt.show()
-    fig.tight_layout()
 
 if plot_scatter == True:
     
     min_pc,max_pc = 1,10
-    min_Pe,max_Pe = 1,50
+    min_Pe,max_Pe = 100,2100
     color_list = compute_prediction(min_pc,max_pc,min_Pe,max_Pe)
 
     plot_data = np.reshape(color_list,(50,50))
@@ -76,7 +58,7 @@ if plot_scatter == True:
     plt.close()
 
     fig,ax = plt.subplots()
-    sctr = ax.scatter(df.pc,df.Pe*df.Vol_hv,c=colors,s=res)
+    sctr = ax.scatter(df.pc,df.Pe,c=colors,s=res)
 
     for i,level in enumerate(levels):
         if i == 0 or i == 5:
@@ -87,27 +69,28 @@ if plot_scatter == True:
     labelLines(plt.gca().get_lines())
 
     ax.tick_params(axis='both',labelsize=14)
-    ax.set_xlabel('pc', fontsize=15)
-    ax.set_ylabel('Pe*Vol',fontsize=15)
+    ax.set_xlabel(r'$p_c$', fontsize=15)
+    ax.set_ylabel(r'$Pe$',fontsize=15)
 
     # produce a legend with the unique colors from the scatter
     legend_elements = [Line2D([0], [0], marker='o',color='w', label='Uniform',
                             markerfacecolor='red', markersize=10),
                     Line2D([0], [0], marker='o',color='w', label='Wormhole',
                             markerfacecolor='blue', markersize=10)]
-    legend1 = ax.legend(handles=legend_elements,loc="lower left",bbox_to_anchor=(1.01, 0.5), title="Behavior",labelspacing=1,frameon=False)
+    legend1 = ax.legend(handles=legend_elements,loc="lower left",bbox_to_anchor=(0.97, 0.5), title="Behavior",labelspacing=1,frameon=False)
     ax.add_artist(legend1)
     # produce a legend with a cross section of sizes from the scatter
     handles, labels = sctr.legend_elements(prop="sizes")
-    labels = [df.ratio.min(),df.ratio.max()]
-
-    legend2 = ax.legend([handles[0],handles[-1]], labels, loc="lower left",bbox_to_anchor=(1.01, 0), title="Rxn Ratio",labelspacing=2,frameon=False)
+    labels = [round(df.ratio.min(),2),round(df.ratio.mean(),2),round(df.ratio.max(),2)]
+    ax.set_ylim(0,2100)
+    ax.set_xlim(1,11)
+    legend2 = ax.legend([handles[0],handles[3],handles[-1]], labels, loc="lower left",bbox_to_anchor=(1.01, 0), title="Rxn Ratio",labelspacing=2,frameon=False)
     fig.tight_layout()
 
 
 if plot_heatmap == True:
     min_pc,max_pc = 1,10
-    min_Pe,max_Pe = 50,1
+    min_Pe,max_Pe = 2100,100
     color_list = compute_prediction(min_pc,max_pc,min_Pe,max_Pe)
 
     plot_data = np.reshape(color_list,(50,50))
@@ -120,10 +103,9 @@ if plot_heatmap == True:
 
     ax.set_xticklabels(xticklabels)
     ax.set_yticklabels(yticklabels,rotation = 'horizontal')
-
     ax.tick_params(axis='both',labelsize=14)
-    ax.set_xlabel('pc', fontsize=15)
-    ax.set_ylabel('Pe*Vol',fontsize=15)
+    ax.set_xlabel(r'$p_c$', fontsize=15)
+    ax.set_ylabel(r'$Pe$',fontsize=15)
 
     fig.tight_layout()
 
