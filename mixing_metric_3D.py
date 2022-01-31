@@ -1,3 +1,5 @@
+from random import sample
+from xml.etree.ElementTree import TreeBuilder
 from skimage.measure import label, regionprops_table, marching_cubes, mesh_surface_area, perimeter
 from scipy.io import loadmat
 import os
@@ -8,7 +10,9 @@ import matplotlib.pyplot as plt
 import scipy.stats as stats
 
 calc_metric = False
-plot_metric = True
+calc_SSA = False
+plot_metric = False
+plot_SSA = False
 
 # sample_descriptor = "fracturedB"
 # imagesize = (300,300,400)
@@ -31,9 +35,12 @@ directory = os.path.normpath(r'F:\FlowHet_RxnDist')
 
 df = pd.read_csv('flow_transport_rxn_properties.csv',header=0,index_col=0)
 
+# samples = ["Sil_HetA_Low_Scan1","Sil_HetB_High_Scan1","Sil_HetB_Low_Scan1"]
+
+
 if calc_metric == True:
-    for sample_descriptor in df.index:
-        # if sample_descriptor != 'menke_2017_ketton_3.6':continue
+    for sample_descriptor in df.index:# samples:
+        # if sample_descriptor != 'Sil_HetA_High_Scan1':continue#any([sample_descriptor=='Sil_HetA_High_Scan1',sample_descriptor=='Sil_HetA_Low_Scan1',sample_descriptor=='Sil_HetB_High_Scan1',sample_descriptor=='Sil_HetB_Low_Scan1']):continue
 
         imagesize = (df.loc[sample_descriptor,'nx'],df.loc[sample_descriptor,'ny'],df.loc[sample_descriptor,'nz'])
 
@@ -63,7 +70,7 @@ if calc_metric == True:
         #load image
         npimg = np.fromfile(file_location, dtype=np.dtype(datatype)) 
         npimg = npimg.reshape(imagesize)
-        npimg[npimg == 2] = 3 #includes disconnected high velocity region
+        # npimg[npimg == 2] = 3 #includes disconnected high velocity region
         npimg[npimg != 3] = 0 #3 for 3d
         labels_out = label(npimg)
 
@@ -83,30 +90,60 @@ if calc_metric == True:
         pc = df.loc[sample_descriptor,'pc']
         print(sample_descriptor,pc,surfacearea,volume)
 
-r_surface,p_surface = stats.spearmanr(df.pc,df.SA_hv)
+if calc_SSA:
+    for sample_descriptor in df.index:# samples:
+        print(sample_descriptor,'percolating path',round(df.loc[sample_descriptor,'SA_perc']/df.loc[sample_descriptor,'Vol_perc'],3) == df.loc[sample_descriptor,'SSA_perc'])
+        print(sample_descriptor,'high velovity',round(df.loc[sample_descriptor,'SA_hv']/df.loc[sample_descriptor,'Vol_hv'],3) == df.loc[sample_descriptor,'SSA'])
 
-r_volume,p_volume = stats.spearmanr(df.pc,df.Vol_hv)
+surfacearea_ = df.SA_perc
+volume_ = df.Vol_perc
+ylimit = (0.006,0.075) #(0.01,0.25)
+spacing = (ylimit[1]-ylimit[0])*(1/16)
+print(spacing)
+region = 'Percolating Path'
+
+r_surface,p_surface = stats.spearmanr(df.pc,surfacearea_)
+
+r_volume,p_volume = stats.spearmanr(df.pc,volume_)
 
 # np.savetxt("surface_volume_percolating_pathway.csv",np.column_stack((pt,surfaces,volumes)),delimiter=",")
 if plot_metric == True:
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()
-    ax1.scatter(df.pc,df.SA_hv,c='mediumpurple',edgecolors='rebeccapurple')
-    ax1.set_ylim(0.014,0.245)
+    ax1.scatter(df.pc,surfacearea_,c='mediumpurple',edgecolors='rebeccapurple')
+    ax1.set_ylim(ylimit)
     ax1.set_xlabel('Percolation Threshold',fontsize=15)
-    ax1.set_ylabel('Surface Area of High Velocity/Void', fontsize=15,color='rebeccapurple')
+    ax1.set_ylabel('Surface Area of '+region+'/Void', fontsize=15,color='rebeccapurple')
     ax1.tick_params(labelsize=13)
     ax1.tick_params('y',color='rebeccapurple',labelcolor='rebeccapurple')
-    ax2.scatter(df.pc,df.Vol_hv,c='goldenrod',edgecolors='darkgoldenrod',alpha=0.5)
-    ax2.set_ylim(0.014,0.245)
-    ax2.set_ylabel('Volume of High Velocity/Void', fontsize=15,color='darkgoldenrod')
+    ax2.scatter(df.pc,volume_,c='goldenrod',edgecolors='darkgoldenrod',alpha=0.5)
+    ax2.set_ylim(ylimit)
+    ax2.set_ylabel('Volume of ' + region +'/Void', fontsize=15,color='darkgoldenrod')
     ax2.tick_params(labelsize=13)
     ax2.tick_params('y',color='darkgoldenrod',labelcolor='darkgoldenrod')
     string_1 = 'Spearman r: ', str(round(r_surface,2)), ' p-value: ',str(round(p_surface,2))
     string_2 = 'Spearman r: ', str(round(r_volume,2)), ' p-value: ',str(round(p_volume,2))
-    ax1.text(4,np.max(df.SA_hv),''.join(string_1),color ='rebeccapurple',fontsize=13)
-    ax1.text(4,np.max(df.SA_hv)-0.015,''.join(string_2),color='darkgoldenrod',fontsize=13)
+    ax1.text(4,np.max(surfacearea_),''.join(string_1),color ='rebeccapurple',fontsize=13)
+    ax1.text(4,np.max(surfacearea_)-spacing,''.join(string_2),color='darkgoldenrod',fontsize=13)
 
+    fig.tight_layout()
+    plt.show()
+
+specificsurfacearea = df.SSA_perc #df.SSA_perc
+# ylim_ = 
+region = 'Percolating Path'
+r,p = stats.spearmanr(df.pc,specificsurfacearea)
+
+if plot_SSA == True:
+    fig, ax1 = plt.subplots()
+    ax1.scatter(df.pc,specificsurfacearea)
+    # ax1.set_ylim(ylimit)
+    ax1.set_xlabel('Percolation Threshold',fontsize=15)
+    ax1.set_ylabel('SSA of '+region+'/Void', fontsize=15)
+    ax1.tick_params(labelsize=13)
+    string_1 = 'Spearman r: ', str(round(r,2)), ' p-value: ',str(round(p,2))
+    ax1.text(4,np.max(specificsurfacearea),''.join(string_1),fontsize=13)
+    
     fig.tight_layout()
     plt.show()
 

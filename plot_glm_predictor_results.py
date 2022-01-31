@@ -11,14 +11,9 @@ plot_scatter = True
 
 #import data
 df = pd.read_csv('flow_transport_rxn_properties.csv',header=0)
-df.drop(3,axis=0,inplace=True)
+df.drop([3],axis=0,inplace=True) #,9,14
 
 #models
-
-def predictor(x0,x1,x2,df,extra):
-    y = np.exp(x0 + x1*df.pc+ x2*df.Pe*extra)
-    return y
-
 def single_predictor(x0,x1,x2,pc,Pe):
     y = np.exp(x0 + x1*pc+ x2*Pe)
     return y
@@ -27,17 +22,20 @@ def single_predictor(x0,x1,x2,pc,Pe):
 # min_PeVol,max_Pe = min(df.Pe*df.Vol_hv),max(df.Pe*df.Vol_hv)
 
 def compute_prediction(min_pc,max_pc,min_Pe,max_Pe):
+    beta0 = -2.69
+    beta1 = -0.25
+    beta2 = 0.015
     color_list = []
     for Pe in np.linspace(min_Pe,max_Pe):
         for pc in np.linspace(min_pc,max_pc):
-            color_list.append(single_predictor(-2.38,-0.30,5.42e-4,pc,Pe)) #2-model
-            # color_list.append(single_predictor(-2.69,-0.24,0.014,pc,Pe)) #3-model
+            # color_list.append(single_predictor(-2.38,-0.30,5.42e-4,pc,Pe)) #2-model
+            color_list.append(single_predictor(beta0,beta1,beta2,pc,Pe)) #3-model #
     return color_list
 
 if plot_scatter == True:
     
     min_pc,max_pc = 1,10
-    min_Pe,max_Pe = 100,2100
+    min_Pe,max_Pe = 1,120
     color_list = compute_prediction(min_pc,max_pc,min_Pe,max_Pe)
 
     plot_data = np.reshape(color_list,(50,50))
@@ -58,7 +56,7 @@ if plot_scatter == True:
     plt.close()
 
     fig,ax = plt.subplots()
-    sctr = ax.scatter(df.pc,df.Pe,c=colors,s=res)
+    sctr = ax.scatter(df.pc,df.Pe*df.Vol_hv,c=colors,s=res)
 
     for i,level in enumerate(levels):
         if i == 0 or i == 5:
@@ -70,7 +68,7 @@ if plot_scatter == True:
 
     ax.tick_params(axis='both',labelsize=14)
     ax.set_xlabel(r'$p_c$', fontsize=15)
-    ax.set_ylabel(r'$Pe$',fontsize=15)
+    ax.set_ylabel(r'$Pe:V$',fontsize=15)
 
     # produce a legend with the unique colors from the scatter
     legend_elements = [Line2D([0], [0], marker='o',color='w', label='Uniform',
@@ -82,15 +80,15 @@ if plot_scatter == True:
     # produce a legend with a cross section of sizes from the scatter
     handles, labels = sctr.legend_elements(prop="sizes")
     labels = [round(df.ratio.min(),2),round(df.ratio.mean(),2),round(df.ratio.max(),2)]
-    ax.set_ylim(0,2100)
-    ax.set_xlim(1,11)
+    ax.set_ylim(1,120)
+    ax.set_xlim(1,10)
     legend2 = ax.legend([handles[0],handles[3],handles[-1]], labels, loc="lower left",bbox_to_anchor=(1.01, 0), title="Rxn Ratio",labelspacing=2,frameon=False)
     fig.tight_layout()
 
 
 if plot_heatmap == True:
     min_pc,max_pc = 1,10
-    min_Pe,max_Pe = 2100,100
+    min_Pe,max_Pe = 120,1
     color_list = compute_prediction(min_pc,max_pc,min_Pe,max_Pe)
 
     plot_data = np.reshape(color_list,(50,50))
@@ -105,7 +103,7 @@ if plot_heatmap == True:
     ax.set_yticklabels(yticklabels,rotation = 'horizontal')
     ax.tick_params(axis='both',labelsize=14)
     ax.set_xlabel(r'$p_c$', fontsize=15)
-    ax.set_ylabel(r'$Pe$',fontsize=15)
+    ax.set_ylabel(r'$Pe:V$',fontsize=15)
 
     fig.tight_layout()
 

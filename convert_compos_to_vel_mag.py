@@ -21,7 +21,7 @@ imagesize =(903,889,785)
 datatype = 'float64'
 
 #data directory
-directory = os.path.normpath(r'E:\FlowHet_RxnDist')
+directory = os.path.normpath(r'F:\FlowHet_RxnDist')
 
 # #data files
 # Ux_velfield = directory + '/Ux_estaillades.dat'

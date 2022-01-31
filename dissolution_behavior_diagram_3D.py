@@ -8,28 +8,64 @@ import matplotlib.pyplot as plt
 
 plot = False
 df = pd.read_csv('flow_transport_rxn_properties.csv',header=0)
-df.drop(3,axis=0,inplace=True)
-x = df.Mm.values * df.EMD.values
-if plot == True:
-    fig = px.scatter_3d(df, x=x, y='Pe', z='Da',log_x=True,
-                color='behavior')
-    # fig.write_html("behaviordiagram_Mm_behavior.html")
-    fig.show()
+# df.drop([3,12,13,14,15],axis=0,inplace=True)
+# x = df.Mm.values * df.EMD.values
+# if plot == True:
+#     fig = px.scatter_3d(df, x=x, y='Pe', z='Da',log_x=True,
+#                 color='behavior')
+#     # fig.write_html("behaviordiagram_Mm_behavior.html")
+#     fig.show()
 
+# behavior = df.behavior.values
+# colors = ['red' if beh == 'uniform' else 'blue' for beh in behavior]
+# x = df.Mm.values
+# y=df.EMD.values
+# z = df.pc.values
+# rxn = df.ratio.values
+# y_trans = np.log(y)
+# # y_trans = np.exp(y)/(1+np.exp(y))
+# fig, ax = plt.subplots()
+# x_trans = np.exp(x)/(1+np.exp(x))
+
+# ax.scatter(y_trans*x_trans,rxn,c=colors)
+
+
+#golfier diagram
+Pe = df.Pe
+Da = df.Da
 behavior = df.behavior.values
-colors = ['red' if beh == 'uniform' else 'blue' for beh in behavior]
-x = df.Mm.values
-y=df.EMD.values
-z = df.pc.values
-rxn = df.ratio.values
-y_trans = np.log(y)
-# y_trans = np.exp(y)/(1+np.exp(y))
+markers = ['P' if beh == 'uniform' else 'o' for beh in behavior]
+chemical = df.chemical_makeup
+colors = []
+for chem in chemical:
+    if chem == 0:
+        colors.append('red')
+    elif chem == 1:
+        colors.append('blue')
+    elif chem == 2:
+        colors.append('limegreen')
+    else: colors.append('purple')
+
 fig, ax = plt.subplots()
-x_trans = np.exp(x)/(1+np.exp(x))
 
-ax.scatter(y_trans*x_trans,rxn,c=colors)
-
+for i in range(len(Pe)):
+    ax.scatter(Pe[i], Da[i]*Pe[i], c=colors[i], marker=markers[i])
+# ax.axhline(y=3e-3,c='k')
+ax.xaxis.tick_top()
+ax.set_xlabel('Pe')    
+# ax.set_xlim([5e1,1e4])
+ax.set_xlim([1e-4,1e4])
+ax.xaxis.set_label_position('top') 
+ax.invert_yaxis()
+ax.set_ylabel('Pe*Da')
+# ax.set_ylim([2e-3,1e-6])
+ax.set_ylim([1e1,1e-7])
+# ax.axvline(x=9e-3,ymin=0,ymax=0.6125,c='k')
+ax.plot([1e4,1.25e-4],[8,1e-7],'-',c='k')
+ax.axvline(x=9e-3,ymin=0,ymax=0.77,c='k')
+ax.loglog()
 plt.show()
+
 # X = np.vstack([df.Pe.values,df.Da.values,df.Mm.values]).transpose()
 # Y = df.behavior.values
 

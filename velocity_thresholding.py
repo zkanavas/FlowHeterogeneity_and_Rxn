@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from visual_utils import array_to_dataframe, convert_to_structure, numpy_to_ply
+# from visual_utils import array_to_dataframe, convert_to_structure, numpy_to_ply
 from skimage.measure import label, regionprops, regionprops_table
 import pandas as pd
 import time
@@ -89,8 +89,11 @@ df = pd.read_csv('flow_transport_rxn_properties.csv',header=0,index_col=0)
 directory = os.path.normpath(r'F:\FlowHet_RxnDist')
 tic = time.perf_counter()
 
-for sample_descriptor in df.index:
-    # if sample_descriptor !="menke_ketton":continue    
+samples = ["Sil_HetA_Low_Scan1","Sil_HetB_High_Scan1","Sil_HetB_Low_Scan1"]
+
+# for sample_descriptor in df.index:
+for sample_descriptor in samples:
+    # if sample_descriptor !="Sil_HetA_High_Scan1":continue    
     imagesize = (df.loc[sample_descriptor,'nx'],df.loc[sample_descriptor,'ny'],df.loc[sample_descriptor,'nz'])
 
     datatype = 'float32'
@@ -122,7 +125,7 @@ for sample_descriptor in df.index:
         else:
             difference = upper_pt - lower_pt
             if difference < tolerance:
-                print('final: ',lower_pt)
+                print(sample_descriptor,' final pc: ',lower_pt)
                 save(vel_normalized,lower_pt)
                 stop=True
             else: 
