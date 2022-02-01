@@ -19,8 +19,8 @@ df.drop('menke_ketton',inplace=True)
 # df.drop(['nx','ny','nz','rb','Vol_perc','SA_perc','SSA_perc','Mm','sigma_v','mu_v'],inplace=True,axis=1)
 
 #reorder dataframe columns
-cols = ['ratio','Pe','Da','EMD','pc','Vol_hv','SA_hv','chemical_makeup','chemical_heterogeneity']
-col_labels = ['ratio','Pe','Da','EMD',r'$p_c$','V','S','chemical_makeup','chemical_heterogeneity']
+cols = ['ratio','Pe','adv_Da','diff_Da','EMD_norm','EMD_log','pc','Vol_hv','SA_hv','chemical_makeup','chemical_heterogeneity']
+col_labels = ['ratio','Pe',r'$Da_{adv}$',r'$Da_{diff}$',r'$EMD_{norm}$',r'$EMD_{log}$',r'$p_c$','V','S',r'$che_{min}$',r'$che_{het}$']
 # cols = ['ratio','Vol_hv','Vol_perc','SA_hv','SA_perc','SSA','SSA_perc']
 # col_labels = ['ratio','V_hv','V_perc','S_hv','S_perc','SSA','SSA_perc']
 newdf = df[cols]
@@ -50,7 +50,8 @@ cmap = sns.diverging_palette(150, 275, as_cmap=True)
 # Draw the heatmap with the mask and correct aspect ratio
 sns.heatmap(corr, cmap=cmap, center=0, mask = np.invert(mask), vmin= -1, vmax = 1,
             square=True, linewidths=.5, 
-            cbar_kws={"shrink": .5,'label':r'Spearman $\rho$','orientation':'horizontal'},
+            cbar = False,
+            # cbar_kws={"shrink": .5,'label':r'Spearman $\rho$','orientation':'horizontal'},
             annot=True, annot_kws={"fontsize":14},ax=ax)
 sns.heatmap(corr, cmap=cmap, mask = mask,center=0, vmin= -1, vmax = 1,
             square=True, linewidths=.5, 
@@ -59,7 +60,7 @@ sns.heatmap(corr, cmap=cmap, mask = mask,center=0, vmin= -1, vmax = 1,
 ax.tick_params('both',labelsize = 15)
 # ylabels = ax.get_yticklabels()
 ax.set_yticklabels(col_labels,rotation = 'horizontal')
-ax.set_xticklabels(col_labels)
+ax.set_xticklabels(col_labels,rotation = 'horizontal')
 
 f.tight_layout()
 plt.show()

@@ -13,6 +13,8 @@ datatype = 'float32'
 load_structure = False
 plot = False
 greaterthan0 = False
+Gaussian = False
+Lognormal = True
 df = pd.read_csv("flow_transport_rxn_properties.csv",header=0)
 sample_descriptor = df['Sample_Name']
 # sample_descriptor = ["fracturedB"]
@@ -27,9 +29,9 @@ sample_descriptor = df['Sample_Name']
 # imagesize = [(936,936,787),(911,914,829),(903,889,785)]
 
 #data directory
-directory = os.path.normpath(r'F:\FlowHet_RxnDist')
+directory = os.path.normpath(r'D:\FlowHet_RxnDist')
 for index,sample in enumerate(sample_descriptor):
-    # if sample != "Sil_HetA_High_Scan1": continue
+    # if sample != "beadpack" and sample != "AH": continue
     
     #data file location
     vel_magnitude_file = directory + "/" + sample + "_velocity_magnitude.raw"
@@ -48,10 +50,7 @@ for index,sample in enumerate(sample_descriptor):
         vel_magnitude = vel_magnitude[vel_magnitude != 0]
     #normalizing velocity field by mean
     mean = np.mean(vel_magnitude)
-    # std = np.std(vel_magnitude)
-    # print(sample,mean,std)
-    # mean = df['mu_v'][index]
-    # mean = df.loc[df.Sample_Name == sample].mu_v.values
+
     vel_magnitude /= mean
     mean = np.mean(vel_magnitude)
     std = np.std(vel_magnitude)
@@ -60,40 +59,56 @@ for index,sample in enumerate(sample_descriptor):
     pdf,velmag_bins = np.histogram(vel_magnitude,density=True,bins = 1000) 
     cumulsum = np.cumsum(pdf)
     velmag_cdf = cumulsum/cumulsum[-1]
+    if Gaussian == True:
+        #generate homogeneous (Gaussian) distribution
+        generated = np.random.normal(loc=mean,scale = std, size=vel_magnitude.size)
+        pdf,gen_bins = np.histogram(generated,density=True,bins = 1000) 
+        cumulsum = np.cumsum(pdf)
+        gen_cdf = cumulsum/cumulsum[-1]
+    elif Lognormal == True:
+        #generate homogeneous (log-normal) distribution
+        generated = np.random.lognormal(mean=mean,sigma = std, size=vel_magnitude.size)
+        pdf,gen_bins = np.histogram(generated,density=True,bins = 1000) 
+        cumulsum = np.cumsum(pdf)
+        gen_cdf = cumulsum/cumulsum[-1]
 
-    #generate homogeneous (Gaussian) distribution
-    normal = np.random.normal(loc=mean,scale = std, size=vel_magnitude.size)
-    pdf,norm_bins = np.histogram(normal,density=True,bins = 1000) 
-    cumulsum = np.cumsum(pdf)
-    normal_cdf = cumulsum/cumulsum[-1]
 
-    velmag_cdf = np.insert(velmag_cdf,0,0)
-    velmag_bins = np.insert(velmag_bins, 0,0)
-    if norm_bins[-2] < velmag_bins[-2]:
-        norm_bins = np.append(norm_bins,[velmag_bins[-2],velmag_bins[-1]]) 
-        normal_cdf = np.append(normal_cdf,[1,1])
+    if gen_bins[-2] < velmag_bins[-2]:
+        gen_bins = np.append(gen_bins,[velmag_bins[-2],velmag_bins[-1]]) 
+        gen_cdf = np.append(gen_cdf,[1,1])
     else:
-        velmag_bins = np.append(velmag_bins,[norm_bins[-2],norm_bins[-1]])
+        velmag_bins = np.append(velmag_bins,[gen_bins[-2],gen_bins[-1]])
         velmag_cdf = np.append(velmag_cdf,[1,1])
-    if not greaterthan0:
+    if Lognormal == True:
+        if gen_bins[0] < velmag_bins[0]:
+            velmag_cdf = np.insert(velmag_cdf,0,0)
+            velmag_bins = np.insert(velmag_bins, 0,np.min(gen_bins)) 
+        else:
+            gen_cdf = np.insert(gen_cdf,0,0)
+            gen_bins = np.insert(gen_bins, 0,np.min(velmag_bins)) 
+
+    if Gaussian == True:
         velmag_cdf = np.insert(velmag_cdf,0,0)
-        velmag_bins = np.insert(velmag_bins, 0,np.min(norm_bins)) 
-    else: 
-        normal_cdf = np.insert(normal_cdf,0,0)
-        norm_bins = np.insert(norm_bins, 0,0)
-        real_space = norm_bins[:-1]>=0
+        velmag_bins = np.insert(velmag_bins, 0,0)
+        if not greaterthan0:
+            velmag_cdf = np.insert(velmag_cdf,0,0)
+            velmag_bins = np.insert(velmag_bins, 0,np.min(gen_bins)) 
+        else: 
+            gen_cdf = np.insert(gen_cdf,0,0)
+            gen_bins = np.insert(gen_bins, 0,0)
+            real_space = gen_bins[:-1]>=0
 
     #calculate statistical distance between velocity distribution and normal distribution
-    # distance = stats.wasserstein_distance(vel_magnitude,normal)
-    # print(sample," wasserstein: ",distance)
+    distance = stats.wasserstein_distance(vel_magnitude,generated)
+    print(sample," wasserstein: ",distance)
     
     # auc_obs = metrics.auc(velmag_bins[:-1],velmag_cdf)
     # auc_norm_truncated = metrics.auc(norm_bins[:-1][real_space],normal_cdf[real_space])
     # auc_norm_all = metrics.auc(norm_bins[:-1],normal_cdf)
     if greaterthan0:
-        distance_norm = abs(metrics.auc(velmag_bins[:-1],velmag_cdf) - metrics.auc(norm_bins[:-1][real_space],normal_cdf[real_space]))
+        distance_norm = abs(metrics.auc(velmag_bins[:-1],velmag_cdf) - metrics.auc(gen_bins[:-1][real_space],gen_cdf[real_space]))
     else:
-        distance_norm = abs(metrics.auc(velmag_bins[:-1],velmag_cdf) - metrics.auc(norm_bins[:-1],normal_cdf))
+        distance_norm = abs(metrics.auc(velmag_bins[:-1],velmag_cdf) - metrics.auc(gen_bins[:-1],gen_cdf))
 
     print(sample, ' distance: ', distance_norm)
     if plot == True:
@@ -101,9 +116,10 @@ for index,sample in enumerate(sample_descriptor):
         ax.set_title(sample)
         ax.plot(velmag_bins[:-1],velmag_cdf,label='true distribution')
         if not greaterthan0:
-            ax.plot(norm_bins[:-1],normal_cdf,label='normal distribution')
+            ax.plot(gen_bins[:-1],gen_cdf,label='log-normal distribution')
         else:
-            ax.plot(norm_bins[:-1][real_space],normal_cdf[real_space],label='normal distribution')
+            ax.plot(gen_bins[:-1][real_space],gen_cdf[real_space],label='log-normal distribution')
+        ax.semilogx()
         ax.tick_params(axis='both',labelsize=14)
         ax.set_xlabel('V/<V>', fontsize=15)
         ax.set_ylabel('CDF',fontsize=15)
