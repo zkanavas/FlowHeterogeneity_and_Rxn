@@ -86,16 +86,16 @@ tolerance = [1e-2]
 df = pd.read_csv('flow_transport_rxn_properties.csv',header=0,index_col=0)
 
 #data directory
-directory = os.path.normpath(r'F:\FlowHet_RxnDist')
+directory = os.path.normpath(r'D:\FlowHet_RxnDist')
 tic = time.perf_counter()
 
-samples = ["Sil_HetA_Low_Scan1","Sil_HetB_High_Scan1","Sil_HetB_Low_Scan1"]
+samples = ["geometry2600"]
 
 # for sample_descriptor in df.index:
 for sample_descriptor in samples:
     # if sample_descriptor !="Sil_HetA_High_Scan1":continue    
-    imagesize = (df.loc[sample_descriptor,'nx'],df.loc[sample_descriptor,'ny'],df.loc[sample_descriptor,'nz'])
-
+    # imagesize = (df.loc[sample_descriptor,'nx'],df.loc[sample_descriptor,'ny'],df.loc[sample_descriptor,'nz'])
+    imagesize = (400,400,400)
     datatype = 'float32'
 
     #data file location

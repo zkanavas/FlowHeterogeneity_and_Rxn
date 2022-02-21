@@ -17,7 +17,7 @@ Gaussian = False
 Lognormal = True
 df = pd.read_csv("flow_transport_rxn_properties.csv",header=0)
 sample_descriptor = df['Sample_Name']
-# sample_descriptor = ["fracturedB"]
+sample_descriptor = ["BH"]
 # imagesize = [(300,300,400)]
 
 # sample_descriptor = "Sil_HetA_High_Scan1"
@@ -111,18 +111,18 @@ for index,sample in enumerate(sample_descriptor):
         distance_norm = abs(metrics.auc(velmag_bins[:-1],velmag_cdf) - metrics.auc(gen_bins[:-1],gen_cdf))
 
     print(sample, ' distance: ', distance_norm)
-    if plot == True:
-        fig,ax = plt.subplots()
-        ax.set_title(sample)
-        ax.plot(velmag_bins[:-1],velmag_cdf,label='true distribution')
-        if not greaterthan0:
-            ax.plot(gen_bins[:-1],gen_cdf,label='log-normal distribution')
-        else:
-            ax.plot(gen_bins[:-1][real_space],gen_cdf[real_space],label='log-normal distribution')
-        ax.semilogx()
-        ax.tick_params(axis='both',labelsize=14)
-        ax.set_xlabel('V/<V>', fontsize=15)
-        ax.set_ylabel('CDF',fontsize=15)
-        ax.legend()
-        fig.tight_layout()
-if plot == True: plt.show()
+#     if plot == True:
+#         fig,ax = plt.subplots()
+#         ax.set_title(sample)
+#         ax.plot(velmag_bins[:-1],velmag_cdf,label='true distribution')
+#         if not greaterthan0:
+#             ax.plot(gen_bins[:-1],gen_cdf,label='log-normal distribution')
+#         else:
+#             ax.plot(gen_bins[:-1][real_space],gen_cdf[real_space],label='log-normal distribution')
+#         ax.semilogx()
+#         ax.tick_params(axis='both',labelsize=14)
+#         ax.set_xlabel('V/<V>', fontsize=15)
+#         ax.set_ylabel('CDF',fontsize=15)
+#         ax.legend()
+#         fig.tight_layout()
+# if plot == True: plt.show()

@@ -15,13 +15,16 @@ import matplotlib.pyplot as plt
 # sample_descriptor = "Sil_HetB_High_Scan1"
 # imagesize =(911,914,829)
 
-sample_descriptor = "Sil_HetB_Low_Scan1"
-imagesize =(903,889,785)
+# sample_descriptor = "Sil_HetB_Low_Scan1"
+# imagesize =(903,889,785)
+
+sample_descriptor = "geometry2600"
+imagesize=(400,400,400)
 
 datatype = 'float64'
 
 #data directory
-directory = os.path.normpath(r'F:\FlowHet_RxnDist')
+directory = os.path.normpath(r'D:\FlowHet_RxnDist')
 
 # #data files
 # Ux_velfield = directory + '/Ux_estaillades.dat'

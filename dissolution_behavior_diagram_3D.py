@@ -6,15 +6,33 @@ from sklearn.linear_model import LogisticRegression
 import numpy as np
 import matplotlib.pyplot as plt
 
-plot = False
+plot_golfier = False
+
+directory = r"C:\Users\zkanavas\Pictures"
+
 df = pd.read_csv('flow_transport_rxn_properties.csv',header=0)
+df.drop(3,axis=0,inplace=True)
 # df.drop([3,12,13,14,15],axis=0,inplace=True)
 # x = df.Mm.values * df.EMD.values
 # if plot == True:
-#     fig = px.scatter_3d(df, x=x, y='Pe', z='Da',log_x=True,
-#                 color='behavior')
-#     # fig.write_html("behaviordiagram_Mm_behavior.html")
-#     fig.show()
+
+# size_min = 10
+# size_max = 1000
+# df.ratio = ((df.ratio - np.min(df.ratio))/np.ptp(df.ratio))*(size_max-size_min)+size_min
+
+
+fig = px.scatter_3d(df, x='pc', y='Pe', z='diff_Da',size='ratio',size_max=100,
+            color='behavior',hover_name='Sample_Name')
+fig.write_html(directory+"\Pe_diffDa_pc_ratio_beh_all.html")
+
+# fig.show()
+fig = px.scatter_3d(df, x='pc', y='Pe', z='adv_Da',size='ratio',size_max=100,
+            color='behavior',log_z=True)
+fig.write_html(directory+"\Pe_advDa_pc_ratio_beh_all.html")
+
+# fig.show()
+
+
 
 # behavior = df.behavior.values
 # colors = ['red' if beh == 'uniform' else 'blue' for beh in behavior]
@@ -31,40 +49,41 @@ df = pd.read_csv('flow_transport_rxn_properties.csv',header=0)
 
 
 #golfier diagram
-Pe = df.Pe
-Da = df.Da
-behavior = df.behavior.values
-markers = ['P' if beh == 'uniform' else 'o' for beh in behavior]
-chemical = df.chemical_makeup
-colors = []
-for chem in chemical:
-    if chem == 0:
-        colors.append('red')
-    elif chem == 1:
-        colors.append('blue')
-    elif chem == 2:
-        colors.append('limegreen')
-    else: colors.append('purple')
+if plot_golfier==True:
+    Pe = df.Pe
+    Da = df.Da
+    behavior = df.behavior.values
+    markers = ['P' if beh == 'uniform' else 'o' for beh in behavior]
+    chemical = df.chemical_makeup
+    colors = []
+    for chem in chemical:
+        if chem == 0:
+            colors.append('red')
+        elif chem == 1:
+            colors.append('blue')
+        elif chem == 2:
+            colors.append('limegreen')
+        else: colors.append('purple')
 
-fig, ax = plt.subplots()
+    fig, ax = plt.subplots()
 
-for i in range(len(Pe)):
-    ax.scatter(Pe[i], Da[i]*Pe[i], c=colors[i], marker=markers[i])
-# ax.axhline(y=3e-3,c='k')
-ax.xaxis.tick_top()
-ax.set_xlabel('Pe')    
-# ax.set_xlim([5e1,1e4])
-ax.set_xlim([1e-4,1e4])
-ax.xaxis.set_label_position('top') 
-ax.invert_yaxis()
-ax.set_ylabel('Pe*Da')
-# ax.set_ylim([2e-3,1e-6])
-ax.set_ylim([1e1,1e-7])
-# ax.axvline(x=9e-3,ymin=0,ymax=0.6125,c='k')
-ax.plot([1e4,1.25e-4],[8,1e-7],'-',c='k')
-ax.axvline(x=9e-3,ymin=0,ymax=0.77,c='k')
-ax.loglog()
-plt.show()
+    for i in range(len(Pe)):
+        ax.scatter(Pe[i], Da[i]*Pe[i], c=colors[i], marker=markers[i])
+    # ax.axhline(y=3e-3,c='k')
+    ax.xaxis.tick_top()
+    ax.set_xlabel('Pe')    
+    # ax.set_xlim([5e1,1e4])
+    ax.set_xlim([1e-4,1e4])
+    ax.xaxis.set_label_position('top') 
+    ax.invert_yaxis()
+    ax.set_ylabel('Pe*Da')
+    # ax.set_ylim([2e-3,1e-6])
+    ax.set_ylim([1e1,1e-7])
+    # ax.axvline(x=9e-3,ymin=0,ymax=0.6125,c='k')
+    ax.plot([1e4,1.25e-4],[8,1e-7],'-',c='k')
+    ax.axvline(x=9e-3,ymin=0,ymax=0.77,c='k')
+    ax.loglog()
+    plt.show()
 
 # X = np.vstack([df.Pe.values,df.Da.values,df.Mm.values]).transpose()
 # Y = df.behavior.values
