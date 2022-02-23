@@ -76,8 +76,9 @@ def resample_pdf(vel_magnitude,dx):
     resampled_pdf = np.random.choice(vel_magnitude[0],size=100000,p=(vel_magnitude[1]*dx))
     return resampled_pdf
 
-plot_ = True
-calc_metric = True
+plot_ = False
+calc_metric = False
+resample_only = True
 # samples = ["menke_2017_est","menke_2017_ket","menke_2017_ket36","menke_2017_portland"]
 # samples = ["Sil_HetA_High","Sil_HetA_Low","Sil_HetB_High","Sil_HetB_Low"]
 df = pd.read_csv("flow_transport_rxn_properties.csv",header=0,index_col=0)
@@ -111,6 +112,30 @@ datatype = 'float32'
     # print(dx_mean_std(vel_magnitude_before))
 
 
+if resample_only == True:
+    for samp in samples:
+        if samp in normfreqsamples: continue
+
+        vel_magnitude_before = pd.read_csv(samp+"_before.csv",header=None)
+        vel_magnitude_after = pd.read_csv(samp+"_after.csv",header=None)
+    
+        dx_before,auc_before, mean_before, std_before=dx_mean_std(vel_magnitude_before)
+        dx_after,auc_after, mean_after, std_after=dx_mean_std(vel_magnitude_after)
+        print(samp," before: ",auc_before, mean_before,std_before)
+        print(samp," after: ", auc_after, mean_after,std_after)
+
+        resampled_before = resample_pdf(vel_magnitude_before,dx_before)
+        resampled_after = resample_pdf(vel_magnitude_after,dx_after)
+
+        fig,ax = plt.subplots()
+        ax.hist(resampled_before, bins= 100,density=True, label="resampled")
+        ax.plot(vel_magnitude_before[0],vel_magnitude_before[1],label="observed")
+        ax.set_xlabel("U/Uave")
+        ax.set_ylabel("PDF")
+        ax.set_title(samp)
+        plt.show()
+
+
 before_distances = []
 after_distances = []
 before_after_distances = []
@@ -131,11 +156,6 @@ if calc_metric == True:
 
         resampled_before = resample_pdf(vel_magnitude_before,dx_before)
         resampled_after = resample_pdf(vel_magnitude_after,dx_after)
-
-        # fig,ax = plt.subplots()
-        # ax.hist(resampled_before, bins= 256,density=True, label="resampled")
-        # ax.plot(vel_magnitude_before[0],vel_magnitude_before[1],label="observed")
-        # plt.show()
         
         lognormal_before = np.random.lognormal(mean=mean_before,sigma=std_before,size=resampled_before.size)
         
@@ -179,11 +199,14 @@ if plot_ == True:
         if behavior == "uniform": color = "red" 
         elif behavior == "wormhole": color ="blue" 
         elif behavior == "compact": color = "green"
-        ax.scatter(df.ratio[samp],before_distances[ind]-after_distances[ind], c = color, label=samp)
+        # ax.scatter(df.ratio[samp],before_distances[ind]-after_distances[ind], c = color, label=samp)
+        ax.scatter(before_distances[ind],after_distances[ind],s=scaled_distances[ind], c = color,label=samp)
         ind += 1
     # ax.set_ylim(-1e200,1e3)
-    # ax.loglog()
-    ax.semilogy()
+    ax.loglog()
+    ax.set_xlabel("before-Gaussian EMD")
+    ax.set_ylabel("after-Gaussian EMD")
+    # ax.semilogy()
     # ax.legend()
 
     # fig,ax = plt.subplots()
