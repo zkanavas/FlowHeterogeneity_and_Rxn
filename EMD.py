@@ -119,8 +119,8 @@ if calc_metric == True:
         vel_magnitude_before = pd.read_csv(samp+"_before.csv",header=None)
         vel_magnitude_after = pd.read_csv(samp+"_after.csv",header=None)
         # if samp != "menke_2017_est":continue
-        if samp in normfreqsamples: continue
-            # vel_magnitude_before,vel_magnitude_after = rescale_to_mean(samp,vel_magnitude_before=vel_magnitude_before,vel_magnitude_after=vel_magnitude_after)
+        if samp in normfreqsamples: 
+            vel_magnitude_before,vel_magnitude_after = rescale_to_mean(samp,vel_magnitude_before=vel_magnitude_before,vel_magnitude_after=vel_magnitude_after)
 
         distances = []
         
@@ -133,8 +133,10 @@ if calc_metric == True:
         resampled_after = resample_pdf(vel_magnitude_after,dx_after)
 
         # fig,ax = plt.subplots()
-        # ax.hist(resampled_before, bins= 256,density=True, label="resampled")
+        # logbins = np.logspace(np.log10(np.min(resampled_before)),np.log10(np.max(resampled_before)),20)
+        # ax.hist(resampled_before,density=True,bins=logbins, label="resampled",histtype='step')
         # ax.plot(vel_magnitude_before[0],vel_magnitude_before[1],label="observed")
+        # ax.semilogx()
         # plt.show()
         
         lognormal_before = np.random.lognormal(mean=mean_before,sigma=std_before,size=resampled_before.size)
@@ -163,6 +165,10 @@ if calc_metric == True:
 
     # print(samp,distances[1]-distances[0])
     # dist.append(distances)
+
+print(before_distances)
+print(after_distances)
+
 plt.show()
 if plot_ == True:
     size_min = 10
@@ -174,12 +180,13 @@ if plot_ == True:
     # for ind,samp in enumerate(samples):
     ind = 0
     for samp in samples:
-        if samp in normfreqsamples: continue
+        # if samp in normfreqsamples: continue
         behavior = df.behavior[samp]
         if behavior == "uniform": color = "red" 
         elif behavior == "wormhole": color ="blue" 
         elif behavior == "compact": color = "green"
-        ax.scatter(df.ratio[samp],before_distances[ind]-after_distances[ind], c = color, label=samp)
+        # ax.scatter(df.ratio[samp],before_distances[ind]-after_distances[ind], c = color, label=samp)
+        ax.scatter(df.ratio[samp],before_after_distances[ind], c = color, label=samp)
         ind += 1
     # ax.set_ylim(-1e200,1e3)
     # ax.loglog()
@@ -187,8 +194,16 @@ if plot_ == True:
     # ax.legend()
 
     # fig,ax = plt.subplots()
-    # for ind,samp in enumerate(samples):
-    #     ax.scatter(before_distances[ind],after_distances[ind],s=scaled_distances[ind], c = behavior[ind],label=samp)
+    # ind = 0
+    # # for ind,samp in enumerate(samples):
+    # for samp in samples:
+    #     # if samp in normfreqsamples: continue
+    #     behavior = df.behavior[samp]
+    #     if behavior == "uniform": color = "red" 
+    #     elif behavior == "wormhole": color ="blue" 
+    #     elif behavior == "compact": color = "green"
+    #     ax.scatter(before_distances[ind],after_distances[ind],s=scaled_distances[ind], c = color,label=samp)
+    #     ind += 1
     plt.show()
 
 # for samp in samples:
