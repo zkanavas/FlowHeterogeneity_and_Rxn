@@ -73,7 +73,8 @@ def rescale_to_mean(samp,before=True, after=True,vel_magnitude_before=[],vel_mag
     return vel_magnitude_before,vel_magnitude_after
 
 def resample_pdf(vel_magnitude,dx):
-    resampled_pdf = np.random.choice(vel_magnitude[0],size=100000,p=(vel_magnitude[1]*dx))
+    # probs = (vel_magnitude[1]*dx)
+    resampled_pdf = np.random.choice(vel_magnitude[0],size=100000000,p=(vel_magnitude[1]*dx))
     return resampled_pdf
 
 plot_ = False
@@ -87,8 +88,8 @@ samples = df.index
 # samples = ["AH","AL","BH","BL"]
 normfreqsamples = ["AH","AL","BH","BL","Sil_HetA_High_Scan1","Sil_HetA_Low_Scan1","Sil_HetB_High_Scan1","Sil_HetB_Low_Scan1"]
 
-directory = os.path.normpath(r'F:\FlowHet_RxnDist')
-datatype = 'float32'
+# directory = os.path.normpath(r'F:\FlowHet_RxnDist')
+# datatype = 'float32'
 
 
 # down_dir = r"C:\Users\zkanavas\Downloads"
@@ -114,11 +115,12 @@ datatype = 'float32'
 
 if resample_only == True:
     for samp in samples:
-        if samp in normfreqsamples: continue
-
+        if samp not in ["AH"]: continue 
         vel_magnitude_before = pd.read_csv(samp+"_before.csv",header=None)
         vel_magnitude_after = pd.read_csv(samp+"_after.csv",header=None)
-    
+        if samp in normfreqsamples: 
+            vel_magnitude_before,vel_magnitude_after = rescale_to_mean(samp,vel_magnitude_before=vel_magnitude_before,vel_magnitude_after=vel_magnitude_after)
+        # else: continue
         dx_before,auc_before, mean_before, std_before=dx_mean_std(vel_magnitude_before)
         dx_after,auc_after, mean_after, std_after=dx_mean_std(vel_magnitude_after)
         print(samp," before: ",auc_before, mean_before,std_before)
@@ -128,60 +130,63 @@ if resample_only == True:
         resampled_after = resample_pdf(vel_magnitude_after,dx_after)
 
         fig,ax = plt.subplots()
-        ax.hist(resampled_before, bins= 100,density=True, label="resampled")
-        ax.plot(vel_magnitude_before[0],vel_magnitude_before[1],label="observed")
+        bins=np.logspace(np.log10(np.min(resampled_after)),np.log10(np.max(resampled_after)), 50)
+        ax.hist(resampled_after, bins= bins,density=True, label="resampled")
+        ax.plot(vel_magnitude_after[0],vel_magnitude_after[1],label="observed")
+        ax.semilogx()
         ax.set_xlabel("U/Uave")
         ax.set_ylabel("PDF")
         ax.set_title(samp)
-        plt.show()
+plt.show()
 
-
-before_distances = []
-after_distances = []
-before_after_distances = []
+# before_distances = []
+# after_distances = []
+# before_after_distances = []
+all_dist = []
 if calc_metric == True:
     for samp in samples:
         vel_magnitude_before = pd.read_csv(samp+"_before.csv",header=None)
         vel_magnitude_after = pd.read_csv(samp+"_after.csv",header=None)
-        # if samp != "menke_2017_est":continue
+        # if samp not in ["BL"]:continue
         if samp in normfreqsamples: 
             vel_magnitude_before,vel_magnitude_after = rescale_to_mean(samp,vel_magnitude_before=vel_magnitude_before,vel_magnitude_after=vel_magnitude_after)
-
-        distances = []
-        
+      
         dx_before,auc_before, mean_before, std_before=dx_mean_std(vel_magnitude_before)
         dx_after,auc_after, mean_after, std_after=dx_mean_std(vel_magnitude_after)
-        print(samp," before: ",auc_before, mean_before,std_before)
-        print(samp," after: ", auc_after, mean_after,std_after)
+        # print(samp," before: ",auc_before, mean_before,std_before)
+        # print(samp," after: ", auc_after, mean_after,std_after)
 
         resampled_before = resample_pdf(vel_magnitude_before,dx_before)
         resampled_after = resample_pdf(vel_magnitude_after,dx_after)
 
-        # fig,ax = plt.subplots()
-        # logbins = np.logspace(np.log10(np.min(resampled_before)),np.log10(np.max(resampled_before)),20)
-        # ax.hist(resampled_before,density=True,bins=logbins, label="resampled",histtype='step')
-        # ax.plot(vel_magnitude_before[0],vel_magnitude_before[1],label="observed")
-        # ax.semilogx()
-        # plt.show()
+        distance_before_after = stats.wasserstein_distance(resampled_before,resampled_after)
+
+        #rescale to mean so we can make lognormal dist
+        resampled_before /= np.mean(resampled_before)
+        resampled_after /= np.mean(resampled_after)
+
+        mean_before = np.mean(resampled_before)
+        mean_after = np.mean(resampled_after)
+        std_before = np.std(resampled_before)
+        std_after = np.std(resampled_after)
         
-        lognormal_before = np.random.lognormal(mean=mean_before,sigma=std_before,size=resampled_before.size)
-        
+        lognormal_before = np.random.lognormal(mean=mean_before,sigma=std_before,size=1000000)
         distance_before = stats.wasserstein_distance(resampled_before,lognormal_before)
 
-
-        lognormal_after = np.random.lognormal(mean=mean_after,sigma=std_after,size=resampled_after.size)
+        lognormal_after = np.random.lognormal(mean=mean_after,sigma=std_after,size=1000000)
         distance_after = stats.wasserstein_distance(resampled_after,lognormal_after)
 
-        distance_before_after = stats.wasserstein_distance(resampled_before,resampled_after)
+        distance_before_after_rescaled = stats.wasserstein_distance(resampled_before,resampled_after)
 
         # print(samp, "before AUC: ", np.sum(dx_before*vel_magnitude_before[1]))
         # print(samp, "after AUC: ", np.sum(dx_after*vel_magnitude_after[1]))
 
             # print(samp,phase,"AUC: ", np.sum(dx*vel_magnitude[1])," mean: ",mean, " std: ",std)
             # print(samp,phase,"log-normal wasserstein: ",distance)
-        before_distances.append(distance_before)
-        after_distances.append(distance_after)
-        before_after_distances.append(distance_before_after)
+        # before_distances.append(distance_before)
+        # after_distances.append(distance_after)
+        # before_after_distances.append(distance_before_after)
+        all_dist.append([samp,distance_before,distance_after,distance_before_after,distance_before_after_rescaled])
         # fig,ax = plt.subplots()
         # ax.plot(vel_magnitude_before[0],vel_magnitude_before[1])
         # ax.plot(vel_magnitude_after[0],vel_magnitude_after[1])
@@ -190,15 +195,22 @@ if calc_metric == True:
 
     # print(samp,distances[1]-distances[0])
     # dist.append(distances)
+    distances = pd.DataFrame(data=all_dist,columns=("Sample_Names","before","after","before_after","before_after_rescaled"))
+# all_dist = []
+# for ind, samp in enumerate(samples):
+#     all_dist.append(samp,before_distances[ind],after_distances[ind],before_after_distances[ind])
 
-print(before_distances)
-print(after_distances)
+
+# print(before_distances)
+# print(after_distances)
+
+distances = pd.read_csv("EMD_distances.csv",header=0,index_col="Sample_Names")
 
 plt.show()
 if plot_ == True:
     size_min = 10
     size_max = 1000
-    scaled_distances = ((before_after_distances - np.min(before_after_distances))/np.ptp(before_after_distances))*(size_max-size_min)+size_min
+    scaled_distances = ((distances.before_after_rescaled - np.min(distances.before_after_rescaled))/np.ptp(distances.before_after_rescaled))*(size_max-size_min)+size_min
     # behavior = ["red" if beh == "uniform" else "blue" for beh in df.behavior]
 
     fig,ax = plt.subplots()
@@ -210,13 +222,17 @@ if plot_ == True:
         if behavior == "uniform": color = "red" 
         elif behavior == "wormhole": color ="blue" 
         elif behavior == "compact": color = "green"
-        # ax.scatter(df.ratio[samp],before_distances[ind]-after_distances[ind], c = color, label=samp)
-        ax.scatter(df.ratio[samp],before_after_distances[ind], c = color, label=samp)
+        ax.scatter(df.ratio[samp],distances.before[samp], label=samp)
+        # ax.scatter(distances.before[samp],distances.after[samp], c = color,s=scaled_distances[ind], label=samp)
+        # ax.scatter(df.ratio[samp],distances.before_after_rescaled[samp], c = color, label=samp)
         ind += 1
     # ax.set_ylim(-1e200,1e3)
-    ax.loglog()
-    ax.set_xlabel("before-Gaussian EMD")
-    ax.set_ylabel("after-Gaussian EMD")
+    # ax.plot([0,np.max(distances.before)],[0,np.max(distances.before)],'k-')
+    # ax.loglog()
+    # ax.set_xlabel("before-LogNormal EMD")
+    # ax.set_ylabel("after-LogNormal EMD")
+    ax.set_xlabel("Rxn Ratio")
+    ax.set_ylabel("before-LogNormal EMD")
     # ax.semilogy()
     # ax.legend()
 
