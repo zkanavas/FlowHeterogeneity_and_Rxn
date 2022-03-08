@@ -11,7 +11,13 @@ plot_golfier = False
 directory = r"C:\Users\zkanavas\Pictures"
 
 df = pd.read_csv('flow_transport_rxn_properties.csv',header=0)
-df.drop(3,axis=0,inplace=True)
+# df.drop(3,axis=0,inplace=True)
+df.drop(2,axis=0,inplace=True)
+
+golfier_uniform = pd.read_csv('golfier_uniform.csv',header=None,names=["Pe","Da"])
+golfier_wormhole = pd.read_csv('golfier_wormhole.csv',names=["Pe","Da"])
+golfier_compact = pd.read_csv('golfier_compact.csv',names=["Pe","Da"])
+
 # df.drop([3,12,13,14,15],axis=0,inplace=True)
 # x = df.Mm.values * df.EMD.values
 # if plot == True:
@@ -19,16 +25,125 @@ df.drop(3,axis=0,inplace=True)
 # size_min = 10
 # size_max = 1000
 # df.ratio = ((df.ratio - np.min(df.ratio))/np.ptp(df.ratio))*(size_max-size_min)+size_min
+colors = []
+for color in df.behavior:
+    if color == "wormhole":
+        colors.append('blue')
+    elif color == "uniform":
+        colors.append('red')
+    elif color == "compact":
+        colors.append('green')
+size_min = 10
+size_max = 100
+scaled_ratio = ((df.ratio - np.min(df.ratio))/np.ptp(df.ratio))*(size_max-size_min)+size_min
+
+fig = go.Figure(data=[go.Scatter3d(
+                                    x=df.pc,
+                                    y=df.Pe,
+                                    z=df.adv_Da,
+                                    hovertext=df.Sample_Name,
+                                    mode = 'markers',
+                                    marker = dict(
+                                                    # size=scaled_ratio,
+                                                    color=colors
+                                    ))])                                    
+fig.add_trace(go.Scatter3d(
+                                    x=np.ones(len(golfier_uniform)),
+                                    y=golfier_uniform.Pe,
+                                    z=golfier_uniform.Da,
+                                    hovertext = "Golfier Uniform",
+                                    mode="markers",
+                                    marker = dict(
+                                                    color = 'red'
+                                    )))
+fig.add_trace(go.Scatter3d(
+                                    x=np.ones(len(golfier_wormhole)),
+                                    y=golfier_wormhole.Pe,
+                                    z=golfier_wormhole.Da,
+                                    hovertext = "Golfier Wormhole",
+                                    mode="markers",
+                                    marker = dict(
+                                                    color = 'blue'
+                                    )))     
+fig.add_trace(go.Scatter3d(
+                                    x=np.ones(3),
+                                    y=golfier_compact.Pe,
+                                    z=golfier_compact.Da,
+                                    hovertext = "Golfier Compact",
+                                    mode="markers",
+                                    marker = dict(
+                                                    color = 'green'
+                                    )))      
+fig.add_trace(go.Scatter3d(
+                            x = [1,1],
+                            y = [0.0001,10000],
+                            z = [0.00042,0.00042],
+                            mode="lines",
+                            line=dict(
+                                color='black',
+                                width=5
+                            )))
+fig.add_trace(go.Scatter3d(
+                            x = [1,1],
+                            y = [0.0015,0.0015],
+                            z = [0.00042,1000],
+                            mode="lines",
+                            line=dict(
+                                color='black',
+                                width=5
+                            )))                            
+fig.add_trace(go.Scatter3d(
+                            x=[1,1,1],
+                            y=[0.0002,3,3],
+                            z=[2,0.0001,2],
+                            text=["Compact","Uniform","Wormhole"],
+                            textposition="middle center",
+                            mode="text"))                           
+fig.add_trace(go.Scatter3d(
+                            x=[1,5.5],
+                            y=[50,10000],
+                            z=[0.0000001,0.0000001],
+                            mode="lines",
+                            line=dict(
+                                color='black',
+                                width=5)))   
+fig.add_trace(go.Scatter3d(
+                            x=[1,10],
+                            y=[0.0015,0.0015],
+                            z=[0.0000001,0.0000001],
+                            mode="lines",
+                            line=dict(
+                                color='black',
+                                width=5)))                                                           
+fig.add_trace(go.Scatter3d(
+                            x=[4.5,2,8],
+                            y=[0.0002,1000,100],
+                            z=[0.0000002,0.0000002,0.0000002],
+                            text=["Compact","Uniform","Wormhole"],
+                            textposition="middle center",
+                            mode="text")) 
+fig.update_layout(scene = dict(
+                    xaxis_title='pc',
+                    yaxis_title='Pe',
+                    zaxis_title='adv Da',
+                    yaxis=dict(type='log',range=[-4,4],),
+                    zaxis=dict(type='log',range=[-7,3])))                                  
+
+fig.write_html(directory+"\Pe_advDa_pc_golfier_v1.html")
+# fig.show()
+
+
 
 
 fig = px.scatter_3d(df, x='pc', y='Pe', z='diff_Da',size='ratio',size_max=100,
             color='behavior',hover_name='Sample_Name')
-fig.write_html(directory+"\Pe_diffDa_pc_ratio_beh_all.html")
+
+# fig.write_html(directory+"\Pe_diffDa_pc_ratio_beh_all.html")
 
 # fig.show()
 fig = px.scatter_3d(df, x='pc', y='Pe', z='adv_Da',size='ratio',size_max=100,
             color='behavior',log_z=True)
-fig.write_html(directory+"\Pe_advDa_pc_ratio_beh_all.html")
+# fig.write_html(directory+"\Pe_advDa_pc_ratio_beh_all.html")
 
 # fig.show()
 

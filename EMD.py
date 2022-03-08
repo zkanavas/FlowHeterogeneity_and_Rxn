@@ -74,12 +74,15 @@ def rescale_to_mean(samp,before=True, after=True,vel_magnitude_before=[],vel_mag
 
 def resample_pdf(vel_magnitude,dx):
     # probs = (vel_magnitude[1]*dx)
+    # vel_magnitude[1] /= np.sum(vel_magnitude[1])
+    # resampled_pdf = np.random.choice(vel_magnitude[0],size=100000000,p=vel_magnitude[1])
+
     resampled_pdf = np.random.choice(vel_magnitude[0],size=100000000,p=(vel_magnitude[1]*dx))
     return resampled_pdf
 
-plot_ = False
+plot_ = True
 calc_metric = False
-resample_only = True
+resample_only = False
 # samples = ["menke_2017_est","menke_2017_ket","menke_2017_ket36","menke_2017_portland"]
 # samples = ["Sil_HetA_High","Sil_HetA_Low","Sil_HetB_High","Sil_HetB_Low"]
 df = pd.read_csv("flow_transport_rxn_properties.csv",header=0,index_col=0)
@@ -131,9 +134,12 @@ if resample_only == True:
 
         fig,ax = plt.subplots()
         bins=np.logspace(np.log10(np.min(resampled_after)),np.log10(np.max(resampled_after)), 50)
-        ax.hist(resampled_after, bins= bins,density=True, label="resampled")
-        ax.plot(vel_magnitude_after[0],vel_magnitude_after[1],label="observed")
+        ax.hist(resampled_after, bins= bins,density=True, alpha=0.6,label="after")
+        bins=np.logspace(np.log10(np.min(resampled_before)),np.log10(np.max(resampled_before)), 50)
+        ax.hist(resampled_before, bins= bins,density=True, alpha= 0.6,label="before")
+        # ax.plot(vel_magnitude_after[0],vel_magnitude_after[1],label="observed")
         ax.semilogx()
+        ax.legend()
         ax.set_xlabel("U/Uave")
         ax.set_ylabel("PDF")
         ax.set_title(samp)
@@ -162,8 +168,8 @@ if calc_metric == True:
         distance_before_after = stats.wasserstein_distance(resampled_before,resampled_after)
 
         #rescale to mean so we can make lognormal dist
-        resampled_before /= np.mean(resampled_before)
-        resampled_after /= np.mean(resampled_after)
+        # resampled_before /= np.mean(resampled_before)
+        # resampled_after /= np.mean(resampled_after)
 
         mean_before = np.mean(resampled_before)
         mean_after = np.mean(resampled_after)
@@ -199,41 +205,47 @@ if calc_metric == True:
 # all_dist = []
 # for ind, samp in enumerate(samples):
 #     all_dist.append(samp,before_distances[ind],after_distances[ind],before_after_distances[ind])
-
+# distances.to_csv("EMD_distancess_raw.csv")
 
 # print(before_distances)
 # print(after_distances)
 
-distances = pd.read_csv("EMD_distances.csv",header=0,index_col="Sample_Names")
+distances = pd.read_csv("EMD_distancess_raw.csv",header=0,index_col="Sample_Names")
+# distances.drop("BH",inplace=True)
+samples = distances.index
 
 plt.show()
 if plot_ == True:
     size_min = 10
-    size_max = 1000
+    size_max = 250
     scaled_distances = ((distances.before_after_rescaled - np.min(distances.before_after_rescaled))/np.ptp(distances.before_after_rescaled))*(size_max-size_min)+size_min
     # behavior = ["red" if beh == "uniform" else "blue" for beh in df.behavior]
 
     fig,ax = plt.subplots()
+    # ax.grid(visible=True,zorder=1)
     # for ind,samp in enumerate(samples):
     ind = 0
     for samp in samples:
-        # if samp in normfreqsamples: continue
+        # if samp == "BH": print(samp)
         behavior = df.behavior[samp]
         if behavior == "uniform": color = "red" 
         elif behavior == "wormhole": color ="blue" 
         elif behavior == "compact": color = "green"
-        ax.scatter(df.ratio[samp],distances.before[samp], label=samp)
+        # ax.scatter(df.ratio[samp],distances.after[samp], c = color,s=scaled_distances[ind],label=samp,zorder=0)
         # ax.scatter(distances.before[samp],distances.after[samp], c = color,s=scaled_distances[ind], label=samp)
-        # ax.scatter(df.ratio[samp],distances.before_after_rescaled[samp], c = color, label=samp)
+        ax.scatter(df.ratio[samp],distances.before_after_rescaled[samp], c = color, label=samp)
         ind += 1
     # ax.set_ylim(-1e200,1e3)
     # ax.plot([0,np.max(distances.before)],[0,np.max(distances.before)],'k-')
     # ax.loglog()
-    # ax.set_xlabel("before-LogNormal EMD")
-    # ax.set_ylabel("after-LogNormal EMD")
-    ax.set_xlabel("Rxn Ratio")
-    ax.set_ylabel("before-LogNormal EMD")
-    # ax.semilogy()
+    ax.semilogy()
+    # ax.set_xlabel("before-LogNormal EMD",fontsize=15)
+    # ax.set_ylabel("after-LogNormal EMD",fontsize=15)
+    # ax.set_ylabel("before-LogNormal EMD",fontsize=15)
+    ax.set_xlabel("Rxn Ratio",fontsize=15)
+    ax.set_ylabel("before-after EMD",fontsize=15)
+    ax.tick_params(labelsize=12)
+    
     # ax.legend()
 
     # fig,ax = plt.subplots()
@@ -247,6 +259,7 @@ if plot_ == True:
     #     elif behavior == "compact": color = "green"
     #     ax.scatter(before_distances[ind],after_distances[ind],s=scaled_distances[ind], c = color,label=samp)
     #     ind += 1
+    fig.tight_layout()
     plt.show()
 
 # for samp in samples:
