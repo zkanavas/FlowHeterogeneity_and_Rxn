@@ -1,4 +1,5 @@
 import os
+from more_itertools import sample
 import numpy as np
 import mat73
 import time
@@ -18,13 +19,25 @@ import matplotlib.pyplot as plt
 # sample_descriptor = "Sil_HetB_Low_Scan1"
 # imagesize =(903,889,785)
 
-sample_descriptor = "geometry2600"
-imagesize=(400,400,400)
+# directory = r"F:\FlowHet_RxnDist\menke_2017_ketton_reaction_extraspace\Batch001\1DStatistics_Batch001\StokesResult"
+# sample_descriptor = "menke_2017_ketton_setPa_initial"
+
+directory = r"F:\FlowHet_RxnDist\menke_2017_ketton_reaction_extraspace\Batch100\1DStatistics_Batch100\StokesResult"
+sample_descriptor = "menke_2017_ketton_setPa_final"
+
+# directory = r"F:\FlowHet_RxnDist\beadpack_uniform_reaction\Batch001\LIRStokesResult_Batch001"
+# sample_descriptor = "beadpack_uniform_initial"
+
+# directory = r"F:\FlowHet_RxnDist\beadpack_uniform_reaction\Batch098\LIRStokesResult_Batch098"
+# sample_descriptor = "beadpack_uniform_final"
+
+# sample_descriptor = "geometry0000"
+# imagesize=(498,498,324)
 
 datatype = 'float64'
 
 #data directory
-directory = os.path.normpath(r'D:\FlowHet_RxnDist')
+# directory = os.path.normpath(r'F:\FlowHet_RxnDist')
 
 # #data files
 # Ux_velfield = directory + '/Ux_estaillades.dat'

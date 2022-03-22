@@ -13,11 +13,11 @@ datatype = 'float32'
 load_structure = False
 plot = False
 greaterthan0 = False
-Gaussian = False
-Lognormal = True
+Gaussian = True
+Lognormal = False
 df = pd.read_csv("flow_transport_rxn_properties.csv",header=0)
 sample_descriptor = df['Sample_Name']
-sample_descriptor = ["BH"]
+sample_descriptor = ["geometry0000","geometry2600"]
 # imagesize = [(300,300,400)]
 
 # sample_descriptor = "Sil_HetA_High_Scan1"
@@ -29,7 +29,7 @@ sample_descriptor = ["BH"]
 # imagesize = [(936,936,787),(911,914,829),(903,889,785)]
 
 #data directory
-directory = os.path.normpath(r'D:\FlowHet_RxnDist')
+directory = os.path.normpath(r'F:\FlowHet_RxnDist')
 for index,sample in enumerate(sample_descriptor):
     # if sample != "beadpack" and sample != "AH": continue
     
@@ -99,8 +99,8 @@ for index,sample in enumerate(sample_descriptor):
             real_space = gen_bins[:-1]>=0
 
     #calculate statistical distance between velocity distribution and normal distribution
-    distance = stats.wasserstein_distance(vel_magnitude,generated)
-    print(sample," wasserstein: ",distance)
+    # distance = stats.wasserstein_distance(vel_magnitude,generated)
+    # print(sample," wasserstein: ",distance)
     
     # auc_obs = metrics.auc(velmag_bins[:-1],velmag_cdf)
     # auc_norm_truncated = metrics.auc(norm_bins[:-1][real_space],normal_cdf[real_space])

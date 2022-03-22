@@ -30,13 +30,13 @@ datatype = 'uint8'
 tic = time.perf_counter()
 
 #data directory
-directory = os.path.normpath(r'D:\FlowHet_RxnDist')
+directory = os.path.normpath(r'F:\FlowHet_RxnDist')
 # samples = os.listdir(directory2)
 
 df = pd.read_csv('flow_transport_rxn_properties.csv',header=0,index_col=0)
 
 # samples = ["Sil_HetA_Low_Scan1","Sil_HetB_High_Scan1","Sil_HetB_Low_Scan1"]
-samples = ["geometry2600"]
+samples = ["geometry0000"]
 
 if calc_metric == True:
     for sample_descriptor in samples:#df.index:# samples:
@@ -96,16 +96,16 @@ if calc_SSA:
         print(sample_descriptor,'percolating path',round(df.loc[sample_descriptor,'SA_perc']/df.loc[sample_descriptor,'Vol_perc'],3))# == df.loc[sample_descriptor,'SSA_perc'])
         print(sample_descriptor,'high velovity',round(df.loc[sample_descriptor,'SA_hv']/df.loc[sample_descriptor,'Vol_hv'],3))# == df.loc[sample_descriptor,'SSA'])
 
-surfacearea_ = df.SA_perc
-volume_ = df.Vol_perc
-ylimit = (0.006,0.075) #(0.01,0.25)
-spacing = (ylimit[1]-ylimit[0])*(1/16)
-print(spacing)
-region = 'Percolating Path'
+# surfacearea_ = df.SA_perc
+# volume_ = df.Vol_perc
+# ylimit = (0.006,0.075) #(0.01,0.25)
+# spacing = (ylimit[1]-ylimit[0])*(1/16)
+# print(spacing)
+# region = 'Percolating Path'
 
-r_surface,p_surface = stats.spearmanr(df.pc,surfacearea_)
+# r_surface,p_surface = stats.spearmanr(df.pc,surfacearea_)
 
-r_volume,p_volume = stats.spearmanr(df.pc,volume_)
+# r_volume,p_volume = stats.spearmanr(df.pc,volume_)
 
 # np.savetxt("surface_volume_percolating_pathway.csv",np.column_stack((pt,surfaces,volumes)),delimiter=",")
 if plot_metric == True:

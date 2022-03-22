@@ -86,20 +86,24 @@ tolerance = [1e-2]
 df = pd.read_csv('flow_transport_rxn_properties.csv',header=0,index_col=0)
 
 #data directory
-directory = os.path.normpath(r'D:\FlowHet_RxnDist')
+directory = os.path.normpath(r'F:\FlowHet_RxnDist')
 tic = time.perf_counter()
 
-samples = ["geometry2600"]
+samples = ["geometry0000"]
+
+
+directory = [r"F:\FlowHet_RxnDist\menke_2017_ketton_reaction_extraspace\Batch001\1DStatistics_Batch001\StokesResult",r"F:\FlowHet_RxnDist\menke_2017_ketton_reaction_extraspace\Batch100\1DStatistics_Batch100\StokesResult"]
+samples = ["menke_2017_ketton_setPa_initial","menke_2017_ketton_setPa_final"]
 
 # for sample_descriptor in df.index:
-for sample_descriptor in samples:
+for count,sample_descriptor in enumerate(samples):
     # if sample_descriptor !="Sil_HetA_High_Scan1":continue    
     # imagesize = (df.loc[sample_descriptor,'nx'],df.loc[sample_descriptor,'ny'],df.loc[sample_descriptor,'nz'])
-    imagesize = (400,400,400)
+    imagesize = (498,498,344)
     datatype = 'float32'
 
     #data file location
-    vel_magnitude_file = directory + "/" + sample_descriptor + "_velocity_magnitude.raw"
+    vel_magnitude_file = directory[count] + "/" + sample_descriptor + "_velocity_magnitude.raw"
 
     #bounding bbox
     # bbox_min = 'bbox-0'
@@ -126,7 +130,7 @@ for sample_descriptor in samples:
             difference = upper_pt - lower_pt
             if difference < tolerance:
                 print(sample_descriptor,' final pc: ',lower_pt)
-                save(vel_normalized,lower_pt)
+                # save(vel_normalized,lower_pt)
                 stop=True
             else: 
                 lower_pt += (upper_pt-lower_pt)/2
