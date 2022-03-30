@@ -5,7 +5,7 @@ import mat73
 from scipy import stats
 import sklearn.metrics as metrics
 from skimage.measure import label, regionprops_table, marching_cubes, mesh_surface_area
-
+import time
 
 def convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,clip_velocity_field=True,loadfrommat=True,loadfromraw=False,loadfromdat=False,datatype = 'float64'):
     #load images
@@ -17,12 +17,14 @@ def convert_components_into_magnitude(vel_components_file,vel_magnitude_file,ima
         Uy_array = velocityfield['flowfield']['VelocityY']
         # z-direction
         Uz_array = velocityfield['flowfield']['VelocityZ'] 
-        if clip_velocity_field: #remove first/last ten rows
-            ...
+        if Ux_array.shape != imagesize: #remove first/last ten rows 
+            Ux_array = Ux_array[:,:,9:imagesize[2]+9]
+            Uy_array = Uy_array[:,:,9:imagesize[2]+9]
+            Uz_array = Uz_array[:,:,9:imagesize[2]+9]
             
     elif loadfromraw:#use for .raw file type
         #x-direction
-        Ux_array = np.fromfile(Ux, dtype=np.dtype(datatype))
+        Ux_array = np.fromfile(Ux, dtype=np.dtype('float32')) #specifying bc only this direction is in this datatype
         #y-direction
         Uy_array = np.fromfile(Uy, dtype=np.dtype(datatype))
         # z-direction
@@ -34,11 +36,12 @@ def convert_components_into_magnitude(vel_components_file,vel_magnitude_file,ima
             Ux_array = Ux_array.reshape(imagesize) 
             Uy_array = Uy_array.reshape(imagesize) 
             Uz_array = Uz_array.reshape(imagesize)
-            #clip
-            ...
-
             #reset image size
             imagesize[2]-=20
+            #clip
+            Ux_array = Ux_array[:,:,9:imagesize[2]+9]
+            Uy_array = Uy_array[:,:,9:imagesize[2]+9]
+            Uz_array = Uz_array[:,:,9:imagesize[2]+9]
         else: #just reshape
             Ux_array = Ux_array.reshape(imagesize) 
             Uy_array = Uy_array.reshape(imagesize) 
@@ -57,11 +60,12 @@ def convert_components_into_magnitude(vel_components_file,vel_magnitude_file,ima
             Ux_array = Ux_array.reshape(imagesize) 
             Uy_array = Uy_array.reshape(imagesize) 
             Uz_array = Uz_array.reshape(imagesize)
-            #clip
-            ...
-
             #reset image size
             imagesize[2]-=20
+            #clip
+            Ux_array = Ux_array[:,:,9:imagesize[2]+9]
+            Uy_array = Uy_array[:,:,9:imagesize[2]+9]
+            Uz_array = Uz_array[:,:,9:imagesize[2]+9]
         else: #just reshape
             Ux_array = Ux_array.reshape(imagesize) 
             Uy_array = Uy_array.reshape(imagesize) 
@@ -72,9 +76,10 @@ def convert_components_into_magnitude(vel_components_file,vel_magnitude_file,ima
 
     #save magnitude file
     vel_magnitude.astype('float32').tofile(vel_magnitude_file)#directory +"/" + sample_descriptor + '_velocity_magnitude.raw')
+    return vel_magnitude
 
-def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=False,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32'):
-
+def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=False,normalize_velocity_field=False,load_structure = True,plot = False,datatype = 'float32',logspacing=True):
+    rng = np.random.default_rng(203)
     #load velocity magnitude
     vel_magnitude = np.fromfile(vel_magnitude_file, dtype=np.dtype(datatype)) 
     #remove structure
@@ -84,7 +89,7 @@ def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_c
         structure = np.fromfile(structure_file,dtype=np.dtype('uint8'))
         structure = structure.reshape((imagesize[0],imagesize[1],imagesize[2]))
         #remove grains
-        vel_magnitude = vel_magnitude[structure != 1]
+        vel_magnitude = vel_magnitude[structure == 0]
     else:
         vel_magnitude = vel_magnitude[vel_magnitude != 0]
     
@@ -97,33 +102,49 @@ def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_c
     std = np.std(vel_magnitude)
     
     #generate homogeneous (log-normal) distribution
-    generated = np.random.lognormal(mean=mean,sigma = std, size=vel_magnitude.size)
+    generated = rng.lognormal(mean=mean,sigma = std, size=1000)#vel_magnitude.size)
     
     if manually_compute:
-        pdf,velmag_bins = np.histogram(vel_magnitude,density=True,bins = 1000) 
+        bin_min = np.min([np.min(vel_magnitude),np.min(generated)])/2
+        bin_max = np.max([np.max(vel_magnitude),np.max(generated)])
+        if logspacing:
+            bins = 10 ** np.linspace(np.log10(bin_min), np.log10(bin_max),num=1000)
+        else:
+            bins = np.linspace(bin_min,bin_max,num=1000)
+        pdf,velmag_bins = np.histogram(vel_magnitude,density=True,bins = bins) 
         cumulsum = np.cumsum(pdf)
         velmag_cdf = cumulsum/cumulsum[-1]
-        pdf,gen_bins = np.histogram(generated,density=True,bins = 1000) 
+        pdf,gen_bins = np.histogram(generated,density=True,bins = bins) 
         cumulsum = np.cumsum(pdf)
         gen_cdf = cumulsum/cumulsum[-1]
 
-        if gen_bins[-2] < velmag_bins[-2]:
-            gen_bins = np.append(gen_bins,[velmag_bins[-2],velmag_bins[-1]]) 
-            gen_cdf = np.append(gen_cdf,[1,1])
-        else:
-            velmag_bins = np.append(velmag_bins,[gen_bins[-2],gen_bins[-1]])
-            velmag_cdf = np.append(velmag_cdf,[1,1])
+        # if gen_bins[-2] < velmag_bins[-2]:
+        #     gen_bins = np.append(gen_bins,[velmag_bins[-2],velmag_bins[-1]]) 
+        #     gen_cdf = np.append(gen_cdf,[1,1])
+        # else:
+        #     velmag_bins = np.append(velmag_bins,[gen_bins[-2],gen_bins[-1]])
+        #     velmag_cdf = np.append(velmag_cdf,[1,1])
 
-        if gen_bins[0] < velmag_bins[0]:
-            velmag_cdf = np.insert(velmag_cdf,0,0)
-            velmag_bins = np.insert(velmag_bins, 0,np.min(gen_bins)) 
-        else:
-            gen_cdf = np.insert(gen_cdf,0,0)
-            gen_bins = np.insert(gen_bins, 0,np.min(velmag_bins)) 
-
+        # if gen_bins[0] < velmag_bins[0]:
+        #     velmag_cdf = np.insert(velmag_cdf,0,0)
+        #     velmag_bins = np.insert(velmag_bins, 0,np.min(gen_bins)) 
+        # else:
+        #     gen_cdf = np.insert(gen_cdf,0,0)
+        #     gen_bins = np.insert(gen_bins, 0,np.min(velmag_bins)) 
         distance = abs(metrics.auc(velmag_bins[:-1],velmag_cdf) - metrics.auc(gen_bins[:-1],gen_cdf))
     else:
         distance = stats.wasserstein_distance(vel_magnitude,generated)
+    if plot == True:
+        fig,ax = plt.subplots()
+        ax.plot(velmag_bins[:-1],velmag_cdf,label='true distribution')
+        ax.plot(gen_bins[:-1],gen_cdf,label='log-normal distribution')
+        ax.semilogx()
+        ax.tick_params(axis='both',labelsize=14)
+        ax.set_xlabel('V/<V>', fontsize=15)
+        ax.set_ylabel('CDF',fontsize=15)
+        ax.legend()
+        fig.tight_layout()
+    if plot == True: plt.show()
     return distance
 
 def checkbounds(vel_normalized,percolation_threshold,imagesize):
@@ -155,7 +176,7 @@ def save(vel_normalized,percolation_threshold,imagesize,velocity_regions_file):
     #save thresholded velocity field
     vel_norm.astype('uint8').tofile(velocity_regions_file)#directory +"/" + sample_descriptor + '_velocity_regions.txt')
 
-def percolation_threshold(vel_magnitude_file,imagesize,velocity_regions_file,structure_file,load_structure=False,save_regions=True,datatype='float32',tolerance = [1e-2]):
+def percolation_threshold(vel_magnitude_file,imagesize,velocity_regions_file,structure_file,load_structure=True,save_regions=True,datatype='float32',tolerance = [1e-2]):
 
     #load images
     vel_magnitude = np.fromfile(vel_magnitude_file, dtype=np.dtype(datatype)) 
@@ -178,7 +199,7 @@ def percolation_threshold(vel_magnitude_file,imagesize,velocity_regions_file,str
     lower_pt = upper_pt/2
     stop = False
     while not stop:
-        print(upper_pt,lower_pt)
+        # print(upper_pt,lower_pt)
         if not checkbounds(vel_normalized,lower_pt,imagesize):
             upper_pt_new = lower_pt
             lower_pt -= (upper_pt-lower_pt)/2 
@@ -217,7 +238,7 @@ def dimensionless_volume_interfacialsurfacearea_SSA(velocity_regions_file,images
     npimg = np.fromfile(velocity_regions_file, dtype=np.dtype(datatype)) 
     npimg = npimg.reshape(imagesize)
     if include_disconnected_hvr: npimg[npimg == 2] = 3 #includes disconnected high velocity region
-    npimg[npimg != 3] = 0 #3 for 3d
+    npimg[npimg != 3] = 0 
     labels_out = label(npimg)
 
     #convert to mesh format
