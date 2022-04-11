@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import sklearn.metrics as metrics
+from scipy.stats import lognorm
 
 #customize these for each sample
 # sample_descriptor = "SilKet" #"AH" #"AL" #"BH" #"BL"
@@ -18,18 +19,65 @@ Lognormal = False
 df = pd.read_csv("flow_transport_rxn_properties.csv",header=0)
 sample_descriptor = df['Sample_Name']
 sample_descriptor = ["geometry0000","geometry2600"]
-# imagesize = [(300,300,400)]
 
-# sample_descriptor = "Sil_HetA_High_Scan1"
-# imagesize =(839,849,812)
-# sample_descriptor = ["beadpack","estaillades"]
-# imagesize = [(500,500,500),(650,650,650)]
-
-# sample_descriptor = ["Sil_HetA_High_Scan1","Sil_HetA_Low_Scan1","Sil_HetB_High_Scan1","Sil_HetB_Low_Scan1"]
-# imagesize = [(936,936,787),(911,914,829),(903,889,785)]
 
 #data directory
 directory = os.path.normpath(r'F:\FlowHet_RxnDist')
+
+def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=False,normalize_velocity_field=False,load_structure = True,plot = False,datatype = 'float32'):
+
+    #load velocity magnitude
+    vel_magnitude = np.fromfile(vel_magnitude_file, dtype=np.dtype(datatype)) 
+    #remove structure
+    if load_structure == True:
+        vel_magnitude = vel_magnitude.reshape(imagesize)
+        # structure_file = directory + "/" + sample + "_structure.raw"
+        structure = np.fromfile(structure_file,dtype=np.dtype('uint8'))
+        structure = structure.reshape((imagesize[0],imagesize[1],imagesize[2]))
+        #remove grains
+        vel_magnitude = vel_magnitude[structure == 0]
+    else:
+        vel_magnitude = vel_magnitude[vel_magnitude != 0]
+    
+    #normalizing velocity field by mean
+    if normalize_velocity_field:
+        mean = np.mean(vel_magnitude)
+        vel_magnitude /= mean
+    # extract sample statistics
+    mean = np.mean(vel_magnitude)
+    std = np.std(vel_magnitude)
+    
+    #generate homogeneous (log-normal) distribution
+    generated = np.random.lognormal(mean=mean,sigma = std, size=vel_magnitude.size)
+
+    if manually_compute:
+
+        pdf,velmag_bins = np.histogram(vel_magnitude,density=True,bins = 1000) 
+        cumulsum = np.cumsum(pdf)
+        velmag_cdf = cumulsum/cumulsum[-1]
+        pdf,gen_bins = np.histogram(generated,density=True,bins = 1000) 
+        cumulsum = np.cumsum(pdf)
+        gen_cdf = cumulsum/cumulsum[-1]
+
+        if gen_bins[-2] < velmag_bins[-2]:
+            gen_bins = np.append(gen_bins,[velmag_bins[-2],velmag_bins[-1]]) 
+            gen_cdf = np.append(gen_cdf,[1,1])
+        else:
+            velmag_bins = np.append(velmag_bins,[gen_bins[-2],gen_bins[-1]])
+            velmag_cdf = np.append(velmag_cdf,[1,1])
+
+        if gen_bins[0] < velmag_bins[0]:
+            velmag_cdf = np.insert(velmag_cdf,0,0)
+            velmag_bins = np.insert(velmag_bins, 0,np.min(gen_bins)) 
+        else:
+            gen_cdf = np.insert(gen_cdf,0,0)
+            gen_bins = np.insert(gen_bins, 0,np.min(velmag_bins)) 
+
+        distance = abs(metrics.auc(velmag_bins[:-1],velmag_cdf) - metrics.auc(gen_bins[:-1],gen_cdf))
+    else:
+        distance = stats.wasserstein_distance(vel_magnitude,generated)
+    return distance
+
 for index,sample in enumerate(sample_descriptor):
     # if sample != "beadpack" and sample != "AH": continue
     
@@ -98,19 +146,13 @@ for index,sample in enumerate(sample_descriptor):
             gen_bins = np.insert(gen_bins, 0,0)
             real_space = gen_bins[:-1]>=0
 
-    #calculate statistical distance between velocity distribution and normal distribution
-    # distance = stats.wasserstein_distance(vel_magnitude,generated)
-    # print(sample," wasserstein: ",distance)
-    
-    # auc_obs = metrics.auc(velmag_bins[:-1],velmag_cdf)
-    # auc_norm_truncated = metrics.auc(norm_bins[:-1][real_space],normal_cdf[real_space])
-    # auc_norm_all = metrics.auc(norm_bins[:-1],normal_cdf)
     if greaterthan0:
         distance_norm = abs(metrics.auc(velmag_bins[:-1],velmag_cdf) - metrics.auc(gen_bins[:-1][real_space],gen_cdf[real_space]))
     else:
         distance_norm = abs(metrics.auc(velmag_bins[:-1],velmag_cdf) - metrics.auc(gen_bins[:-1],gen_cdf))
 
     print(sample, ' distance: ', distance_norm)
+
 #     if plot == True:
 #         fig,ax = plt.subplots()
 #         ax.set_title(sample)

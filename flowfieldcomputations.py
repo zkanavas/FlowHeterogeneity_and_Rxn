@@ -6,6 +6,7 @@ from scipy import stats
 import sklearn.metrics as metrics
 from skimage.measure import label, regionprops_table, marching_cubes, mesh_surface_area
 import time
+from scipy.special import erf
 
 def convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,clip_velocity_field=True,loadfrommat=True,loadfromraw=False,loadfromdat=False,datatype = 'float64'):
     #load images
@@ -78,7 +79,8 @@ def convert_components_into_magnitude(vel_components_file,vel_magnitude_file,ima
     vel_magnitude.astype('float32').tofile(vel_magnitude_file)#directory +"/" + sample_descriptor + '_velocity_magnitude.raw')
     return vel_magnitude
 
-def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=False,normalize_velocity_field=False,load_structure = True,plot = False,datatype = 'float32',logspacing=True):
+def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=False,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',logspacing=False,gen_ran_pop = False):
+    
     rng = np.random.default_rng(203)
     #load velocity magnitude
     vel_magnitude = np.fromfile(vel_magnitude_file, dtype=np.dtype(datatype)) 
@@ -101,43 +103,47 @@ def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_c
     mean = np.mean(vel_magnitude)
     std = np.std(vel_magnitude)
     
-    #generate homogeneous (log-normal) distribution
-    generated = rng.lognormal(mean=mean,sigma = std, size=1000)#vel_magnitude.size)
-    
+    #calculate variance & mean of log-normal dist
+    log_mu = np.log((mean**2)/(((mean**2)+(std**2)))**(1/2))
+    log_sigma = np.log(1+ (std**2/mean**2))
+
+    #cdFUNCTION for log-normal dist
+    def log_norm_cdf(mu,sigma,X):
+        cdf_ = (1/2)*(1+erf((np.log(X)-mu)/((sigma**(1/2))*(2**(1/2)))))
+        return cdf_
+
+    #generate homogeneous (log-normal) distribution via random population
+    if gen_ran_pop:
+        generated = rng.lognormal(mean=log_mu,sigma = log_sigma**(1/2), size=vel_magnitude.size)
+
     if manually_compute:
-        bin_min = np.min([np.min(vel_magnitude),np.min(generated)])/2
-        bin_max = np.max([np.max(vel_magnitude),np.max(generated)])
+        bin_min = np.min(vel_magnitude)/2
+        bin_max = np.max(vel_magnitude)
         if logspacing:
             bins = 10 ** np.linspace(np.log10(bin_min), np.log10(bin_max),num=1000)
         else:
             bins = np.linspace(bin_min,bin_max,num=1000)
+
         pdf,velmag_bins = np.histogram(vel_magnitude,density=True,bins = bins) 
         cumulsum = np.cumsum(pdf)
         velmag_cdf = cumulsum/cumulsum[-1]
-        pdf,gen_bins = np.histogram(generated,density=True,bins = bins) 
-        cumulsum = np.cumsum(pdf)
-        gen_cdf = cumulsum/cumulsum[-1]
-
-        # if gen_bins[-2] < velmag_bins[-2]:
-        #     gen_bins = np.append(gen_bins,[velmag_bins[-2],velmag_bins[-1]]) 
-        #     gen_cdf = np.append(gen_cdf,[1,1])
-        # else:
-        #     velmag_bins = np.append(velmag_bins,[gen_bins[-2],gen_bins[-1]])
-        #     velmag_cdf = np.append(velmag_cdf,[1,1])
-
-        # if gen_bins[0] < velmag_bins[0]:
-        #     velmag_cdf = np.insert(velmag_cdf,0,0)
-        #     velmag_bins = np.insert(velmag_bins, 0,np.min(gen_bins)) 
-        # else:
-        #     gen_cdf = np.insert(gen_cdf,0,0)
-        #     gen_bins = np.insert(gen_bins, 0,np.min(velmag_bins)) 
-        distance = abs(metrics.auc(velmag_bins[:-1],velmag_cdf) - metrics.auc(gen_bins[:-1],gen_cdf))
-    else:
+        if gen_ran_pop:
+            pdf,gen_bins = np.histogram(generated,density=True,bins = bins) 
+            cumulsum = np.cumsum(pdf)
+            gen_cdf = cumulsum/cumulsum[-1]
+            distance = abs(metrics.auc(velmag_bins[:-1],velmag_cdf) - metrics.auc(gen_bins[-1],gen_cdf))
+        else:
+            lognormal_ys = log_norm_cdf(log_mu,log_sigma,bins)
+            distance = abs(metrics.auc(velmag_bins[:-1],velmag_cdf) - metrics.auc(bins,lognormal_ys))
+    else: 
         distance = stats.wasserstein_distance(vel_magnitude,generated)
     if plot == True:
         fig,ax = plt.subplots()
         ax.plot(velmag_bins[:-1],velmag_cdf,label='true distribution')
-        ax.plot(gen_bins[:-1],gen_cdf,label='log-normal distribution')
+        if gen_ran_pop:
+            ax.plot(gen_bins[:-1],gen_cdf,label='log-normal distribution')
+        else:
+            ax.plot(bins,lognormal_ys,label='log-normal distribution')
         ax.semilogx()
         ax.tick_params(axis='both',labelsize=14)
         ax.set_xlabel('V/<V>', fontsize=15)

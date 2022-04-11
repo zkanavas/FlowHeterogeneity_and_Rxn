@@ -4,6 +4,7 @@ import os
 import numpy as np
 import pandas as pd
 import time
+import matplotlib.pyplot as plt
 
 calc_components = False
 calc_percolation_threshold = False
@@ -66,22 +67,23 @@ for (root,dirs,files) in os.walk(rootdir):
                     print("calculating EMD for ", sample,phase)
 
                     tic = time.time()
-                    distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=False,normalize_velocity_field=True,load_structure = False,plot = False,datatype = 'float32')
+                    distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=False,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',gen_ran_pop = True)
                     toc = time.time()
                     res['built-in'][indi] = distance
                     res['built-in_time'][indi] = toc - tic
-
-                    tic = time.time()
-                    distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=True,normalize_velocity_field=True,load_structure = False,plot = False,datatype = 'float32',logspacing=True)
-                    toc = time.time()
-                    res['manual-log'][indi] = distance
-                    res['manual-log_time'][indi] = toc - tic
+                    print(sample,phase," EMD: ",distance)
+                    # tic = time.time()
+                    # distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=True,normalize_velocity_field=False,load_structure = False,plot = True,datatype = 'float32',logspacing=True)
+                    # toc = time.time()
+                    # res['manual-log'][indi] = distance
+                    # res['manual-log_time'][indi] = toc - tic
                     
                     tic = time.time()
-                    distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=True,normalize_velocity_field=True,load_structure = False,plot = False,datatype = 'float32',logspacing=False)
+                    distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=True,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',logspacing=False,gen_ran_pop = False)
                     toc = time.time()
                     res['manual-linear'][indi] = distance
                     res['manual-linear_time'][indi] = toc - tic
+                    print(sample,phase," EMD: ",distance)
 
                 else: distance = []
                 velocity_regions_file = root +"/_vel_regions.raw"
