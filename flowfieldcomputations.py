@@ -79,11 +79,17 @@ def convert_components_into_magnitude(vel_components_file,vel_magnitude_file,ima
     vel_magnitude.astype('float32').tofile(vel_magnitude_file)#directory +"/" + sample_descriptor + '_velocity_magnitude.raw')
     return vel_magnitude
 
-def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=False,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',logspacing=False,gen_ran_pop = False):
-    
+def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=False,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',logspacing=False,gen_ran_pop = False,compare_to_log=False,compare_to_Gauss=True):
+    try:
+        compare_to_log != compare_to_Gauss
+    except:
+        print("choose to comapre to log-normal OR gaussian")
+
     rng = np.random.default_rng(203)
     #load velocity magnitude
     vel_magnitude = np.fromfile(vel_magnitude_file, dtype=np.dtype(datatype)) 
+    if logspacing:
+        vel_magnitude = np.log10(vel_magnitude)
     #remove structure
     if load_structure == True:
         vel_magnitude = vel_magnitude.reshape(imagesize)
@@ -104,11 +110,16 @@ def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_c
     std = np.std(vel_magnitude)
     
     #calculate variance & mean of log-normal dist
-    log_mu = np.log((mean**2)/(((mean**2)+(std**2)))**(1/2))
-    log_sigma = np.log(1+ (std**2/mean**2))
+    if compare_to_log:
+        log_mu = np.log((mean**2)/(((mean**2)+(std**2)))**(1/2))
+        log_sigma = np.log(1+ (std**2/mean**2))
 
     #cdFUNCTION for log-normal dist
     def log_norm_cdf(mu,sigma,X):
+        cdf_ = (1/2)*(1+erf((np.log(X)-mu)/((sigma**(1/2))*(2**(1/2)))))
+        return cdf_
+    
+    def Gauss_cdf(mu,sigma,X):
         cdf_ = (1/2)*(1+erf((np.log(X)-mu)/((sigma**(1/2))*(2**(1/2)))))
         return cdf_
 
@@ -119,10 +130,10 @@ def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_c
     if manually_compute:
         bin_min = np.min(vel_magnitude)/2
         bin_max = np.max(vel_magnitude)
-        if logspacing:
-            bins = 10 ** np.linspace(np.log10(bin_min), np.log10(bin_max),num=1000)
-        else:
-            bins = np.linspace(bin_min,bin_max,num=1000)
+        # if logspacing:
+        #     bins = 10 ** np.linspace(np.log10(bin_min), np.log10(bin_max),num=1000)
+        # else:
+        bins = np.linspace(bin_min,bin_max,num=1000)
 
         pdf,velmag_bins = np.histogram(vel_magnitude,density=True,bins = bins) 
         cumulsum = np.cumsum(pdf)
@@ -133,7 +144,10 @@ def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_c
             gen_cdf = cumulsum/cumulsum[-1]
             distance = abs(metrics.auc(velmag_bins[:-1],velmag_cdf) - metrics.auc(gen_bins[-1],gen_cdf))
         else:
-            lognormal_ys = log_norm_cdf(log_mu,log_sigma,bins)
+            if compare_to_log:
+                lognormal_ys = log_norm_cdf(log_mu,log_sigma,bins)
+            elif compare_to_Gauss:
+                lognormal_ys = Gauss_cdf(mean,std,bins)
             distance = abs(metrics.auc(velmag_bins[:-1],velmag_cdf) - metrics.auc(bins,lognormal_ys))
     else: 
         distance = stats.wasserstein_distance(vel_magnitude,generated)

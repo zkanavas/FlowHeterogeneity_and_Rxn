@@ -13,7 +13,7 @@ calc_V_S = False
 
 df = pd.read_csv("flow_transport_rxn_properties.csv",header=0,index_col=0)
 
-rootdir =r"H:\FlowHet_RxnDist"
+rootdir =r"F:\FlowHet_RxnDist"
 folders_to_look_thru = ["Menke2015","Menke2017","AlKhulaifi2018","AlKhulaifi2019","Hinz2019","PereiraNunes2016"]
 # folders_to_look_thru = ["AlKhulaifi2019"]
 reaction_phase = ["final","initial"]
@@ -66,20 +66,21 @@ for (root,dirs,files) in os.walk(rootdir):
                     indi = sample[0] + "_" + phase[0]
                     print("calculating EMD for ", sample,phase)
 
-                    tic = time.time()
-                    distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=False,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',gen_ran_pop = True)
-                    toc = time.time()
-                    res['built-in'][indi] = distance
-                    res['built-in_time'][indi] = toc - tic
-                    print(sample,phase," EMD: ",distance)
                     # tic = time.time()
-                    # distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=True,normalize_velocity_field=False,load_structure = False,plot = True,datatype = 'float32',logspacing=True)
+                    # distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=False,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',gen_ran_pop = True)
                     # toc = time.time()
-                    # res['manual-log'][indi] = distance
-                    # res['manual-log_time'][indi] = toc - tic
+                    # res['built-in'][indi] = distance
+                    # res['built-in_time'][indi] = toc - tic
+                    # print(sample,phase," EMD: ",distance)
                     
                     tic = time.time()
-                    distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=True,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',logspacing=False,gen_ran_pop = False)
+                    distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=True,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',logspacing=True,gen_ran_pop = False, compare_to_log=False,compare_to_Gauss=True)
+                    toc = time.time()
+                    res['manual-log'][indi] = distance
+                    res['manual-log_time'][indi] = toc - tic
+                    
+                    tic = time.time()
+                    distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=True,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',logspacing=False,gen_ran_pop = False,compare_to_log=True,compare_to_Gauss=False)
                     toc = time.time()
                     res['manual-linear'][indi] = distance
                     res['manual-linear_time'][indi] = toc - tic
