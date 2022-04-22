@@ -4,8 +4,9 @@ import pandas as pd
 import numpy as np
 
 initial_flow_props = pd.read_csv("flow_transport_rxn_properties.csv",header=0,index_col=0)
-initial_flow_props.drop('ketton',inplace=True) #don't have final structure for ketton --> from Pereira-Nunes 2016
+initial_flow_props.drop(['ketton','Hinz2019'],inplace=True) #don't have final structure for ketton --> from Pereira-Nunes 2016
 final_flow_props = pd.read_csv("final_flow_trans_rxn_prop.csv",header=0,index_col=0)
+final_flow_props.drop(['Hinz2019'],inplace=True) #don't have final structure for ketton --> from Pereira-Nunes 2016
 samples = initial_flow_props.index
 
 plot_initialfinal=False
@@ -33,16 +34,23 @@ if plot_initialfinal:
         elif behavior == "compact": color = "green"
         ax.scatter(initial_flow_props[flowmetric][samp],final_flow_props[flowmetric][samp], c = color, label=samp)
         ind += 1
-    ax.set_xlim(1,np.max(initial_flow_props[flowmetric])+0.15)
-    ax.set_ylim(1,np.max(final_flow_props[flowmetric])+0.15)
-    ax.plot([0,np.max(initial_flow_props[flowmetric])],[0,np.max(initial_flow_props[flowmetric])],'k-')
+        print(samp,initial_flow_props[flowmetric][samp],final_flow_props[flowmetric][samp])
+    ax.plot([4.725,4.725],[0,15],'k-')
+    ax.plot([0,15],[4.725,4.725],'k-')
+    lim_factor = np.std(initial_flow_props[flowmetric])/4
+    lim_factor_final = np.std(final_flow_props[flowmetric])/4
+    ax.set_xlim(np.min(initial_flow_props[flowmetric])-lim_factor,np.max(initial_flow_props[flowmetric])+lim_factor)
+    ax.set_ylim(np.min(final_flow_props[flowmetric])-lim_factor_final,np.max(final_flow_props[flowmetric])+lim_factor_final)
+    # ax.plot([0,np.max(initial_flow_props[flowmetric])],[0,np.max(initial_flow_props[flowmetric])],'k-')
+
     # ax.loglog()
     # ax.semilogy()
     ax.set_xlabel("before-"+flowmetric,fontsize=15)
     ax.set_ylabel("after-"+flowmetric,fontsize=15)
     ax.tick_params(labelsize=12)
     fig.tight_layout()
-    plt.show()
+    # plt.show()
+    
 
 if plot_legend:
     scatter_points= []
@@ -52,12 +60,12 @@ if plot_legend:
     ax.legend(scatter_points,["uniform","wormhole","compact"],loc="center",ncol=1)
     ax.axis("off")
     fig.tight_layout()
-    plt.show()
+    # plt.show()
 
 if plot_flow_rxnratio:
     size_min = 10
     size_max = 250
-    before_after = final_flow_props[flowmetric] - initial_flow_props[flowmetric]
+    before_after = np.abs(final_flow_props[flowmetric] - initial_flow_props[flowmetric])
     scaled_distances = ((before_after - np.min(before_after))/np.ptp(before_after))*(size_max-size_min)+size_min
     # behavior = ["red" if beh == "uniform" else "blue" for beh in df.behavior]
 
@@ -66,8 +74,8 @@ if plot_flow_rxnratio:
     # for ind,samp in enumerate(samples):
     # ind = 0
     for ind,samp in enumerate(samples):
-        if samp == "port0.1ph3.6":continue
-        elif samp == "est0.1ph3.6":continue
+        # if samp == "port0.1ph3.6":continue
+        # elif samp == "est0.1ph3.6":continue
         behavior = initial_flow_props.behavior[samp]
         if behavior == "uniform": color = "red" 
         elif behavior == "wormhole": color ="blue" 
@@ -79,4 +87,4 @@ if plot_flow_rxnratio:
     ax.set_ylabel("after-before "+flowmetric,fontsize=15)
     ax.tick_params(labelsize=12)
     fig.tight_layout()
-    plt.show()
+plt.show()

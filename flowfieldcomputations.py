@@ -88,8 +88,7 @@ def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_c
     rng = np.random.default_rng(203)
     #load velocity magnitude
     vel_magnitude = np.fromfile(vel_magnitude_file, dtype=np.dtype(datatype)) 
-    if logspacing:
-        vel_magnitude = np.log10(vel_magnitude)
+
     #remove structure
     if load_structure == True:
         vel_magnitude = vel_magnitude.reshape(imagesize)
@@ -100,7 +99,8 @@ def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_c
         vel_magnitude = vel_magnitude[structure == 0]
     else:
         vel_magnitude = vel_magnitude[vel_magnitude != 0]
-    
+    if compare_to_Gauss:
+        vel_magnitude = np.log(vel_magnitude)
     #normalizing velocity field by mean
     if normalize_velocity_field:
         mean = np.mean(vel_magnitude)
@@ -120,12 +120,15 @@ def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_c
         return cdf_
     
     def Gauss_cdf(mu,sigma,X):
-        cdf_ = (1/2)*(1+erf((np.log(X)-mu)/((sigma**(1/2))*(2**(1/2)))))
+        cdf_ = (1/2)*(1+erf((X-mu)/((sigma**(1/2))*(2**(1/2)))))
         return cdf_
 
     #generate homogeneous (log-normal) distribution via random population
     if gen_ran_pop:
-        generated = rng.lognormal(mean=log_mu,sigma = log_sigma**(1/2), size=vel_magnitude.size)
+        if compare_to_log:
+            generated = rng.lognormal(mean=log_mu,sigma = log_sigma**(1/2), size=1000000)
+        elif compare_to_Gauss:
+            generated = rng.normal(loc=mean,scale = std, size=1000000)
 
     if manually_compute:
         bin_min = np.min(vel_magnitude)/2

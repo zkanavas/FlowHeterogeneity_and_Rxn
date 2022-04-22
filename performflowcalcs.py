@@ -50,7 +50,7 @@ if calc_components:
                     vel_magnitude=convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,clip_velocity_field=False,loadfrommat=False,loadfromraw=False,loadfromdat=True,datatype = 'float64')
 
 indeces = [(ind+"_"+phase) for ind in df.index for phase in reaction_phase]
-res = pd.DataFrame(columns=["manual-log","manual-log_time","manual-linear","manual-linear_time","built-in","built-in_time"],index=indeces)
+res = pd.DataFrame(columns=["manual-Gaussian","manual-Gaussian_time","manual-LogNormal","manual-LogNormal_time","built-in","built-in_time"],index=indeces)
 
 for (root,dirs,files) in os.walk(rootdir):
     if any(folder in root for folder in folders_to_look_thru) and any(phase in root for phase in reaction_phase):
@@ -66,25 +66,26 @@ for (root,dirs,files) in os.walk(rootdir):
                     indi = sample[0] + "_" + phase[0]
                     print("calculating EMD for ", sample,phase)
 
-                    # tic = time.time()
-                    # distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=False,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',gen_ran_pop = True)
-                    # toc = time.time()
-                    # res['built-in'][indi] = distance
-                    # res['built-in_time'][indi] = toc - tic
-                    # print(sample,phase," EMD: ",distance)
+                    tic = time.time()
+                    distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=False,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',gen_ran_pop = True,compare_to_log=True,compare_to_Gauss=False)
+                    toc = time.time()
+                    res['built-in'][indi] = distance
+                    res['built-in_time'][indi] = toc - tic
+                    print("built-in EMD: ",distance)
                     
                     tic = time.time()
-                    distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=True,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',logspacing=True,gen_ran_pop = False, compare_to_log=False,compare_to_Gauss=True)
+                    distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=True,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',logspacing=False,gen_ran_pop = False, compare_to_log=False,compare_to_Gauss=True)
                     toc = time.time()
-                    res['manual-log'][indi] = distance
-                    res['manual-log_time'][indi] = toc - tic
-                    
+                    res['manual-Gaussian'][indi] = distance
+                    res['manual-Gaussian_time'][indi] = toc - tic
+                    print("manual-Gaussian EMD: ",distance)
+
                     tic = time.time()
                     distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=True,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',logspacing=False,gen_ran_pop = False,compare_to_log=True,compare_to_Gauss=False)
                     toc = time.time()
-                    res['manual-linear'][indi] = distance
-                    res['manual-linear_time'][indi] = toc - tic
-                    print(sample,phase," EMD: ",distance)
+                    res['manual-LogNormal'][indi] = distance
+                    res['manual-LogNormal_time'][indi] = toc - tic
+                    print("manual-LogNormal EMD: ",distance)
 
                 else: distance = []
                 velocity_regions_file = root +"/_vel_regions.raw"
