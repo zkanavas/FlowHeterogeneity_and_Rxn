@@ -7,7 +7,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 plot_golfier = False
-
+plot_3D = False
+plot_2D = True
+plot_advDa = False
+plot_diffDa = True
+save = False
+show = True
+add_cutoffs = True
+font = 'Trebuchet MS'
+ticksize = 15
+labelsize = 20
+markersize = 15
 # directory = r"C:\Users\zkanavas\Pictures"
 directory = r"C:\Users\zkana\Pictures"
 
@@ -15,9 +25,9 @@ df = pd.read_csv('flow_transport_rxn_properties.csv',header=0)
 # df.drop(3,axis=0,inplace=True)
 df.drop(2,axis=0,inplace=True)
 
-golfier_uniform = pd.read_csv('golfier_uniform.csv',header=None,names=["Pe","Da"])
-golfier_wormhole = pd.read_csv('golfier_wormhole.csv',names=["Pe","Da"])
-golfier_compact = pd.read_csv('golfier_compact.csv',names=["Pe","Da"])
+golfier_uniform = pd.read_csv('golfier_uniform.csv',header=0)#names=["Pe","Da"])
+golfier_wormhole = pd.read_csv('golfier_wormhole.csv',header=0)#names=["Pe","Da"])
+golfier_compact = pd.read_csv('golfier_compact.csv',header=0)#,names=["Pe","Da"])
 
 # df.drop([3,12,13,14,15],axis=0,inplace=True)
 # x = df.Mm.values * df.EMD.values
@@ -26,238 +36,325 @@ golfier_compact = pd.read_csv('golfier_compact.csv',names=["Pe","Da"])
 # size_min = 10
 # size_max = 1000
 # df.ratio = ((df.ratio - np.min(df.ratio))/np.ptp(df.ratio))*(size_max-size_min)+size_min
-colors = []
-for color in df.behavior:
-    if color == "wormhole":
-        colors.append('blue')
-    elif color == "uniform":
-        colors.append('red')
-    elif color == "compact":
-        colors.append('green')
+markers = []
+for marker in df.behavior:
+    if marker == "wormhole":
+        markers.append('diamond')
+    elif marker == "uniform":
+        markers.append('circle')
+    elif marker == "compact":
+        markers.append('triangle-up')
 size_min = 10
 size_max = 100
 scaled_ratio = ((df.ratio - np.min(df.ratio))/np.ptp(df.ratio))*(size_max-size_min)+size_min
 
-fig = go.Figure(data=[go.Scatter3d(
-                                    x=df.pc,
-                                    y=df.Pe,
-                                    z=df.adv_Da,
-                                    hovertext=df.Sample_Name,
-                                    mode = 'markers',
-                                    marker = dict(
-                                                    # size=scaled_ratio,
-                                                    color=colors
-                                    ))])                                    
-fig.add_trace(go.Scatter3d(
-                                    x=np.ones(len(golfier_uniform)),
-                                    y=golfier_uniform.Pe,
-                                    z=golfier_uniform.Da,
+if plot_3D:
+    if plot_advDa:
+        fig = go.Figure(data=[go.Scatter3d(
+                                            x=df.pc,
+                                            y=df.Pe,
+                                            z=df.adv_Da,
+                                            hovertext=df.Sample_Name,
+                                            mode = 'markers',
+                                            marker = dict(
+                                                            symbol = markers,
+                                                            # size=scaled_ratio,
+                                                            color='blue'
+                                            ))])                                    
+        fig.add_trace(go.Scatter3d(
+                                            x=np.ones(len(golfier_uniform)),
+                                            y=golfier_uniform.Pe,
+                                            z=golfier_uniform.Da,
+                                            hovertext = "Golfier Uniform",
+                                            mode="markers",
+                                            marker = dict(
+                                                            symbol = 'circle-open',
+                                                            color = 'black'
+                                            )))
+        fig.add_trace(go.Scatter3d(
+                                            x=np.ones(len(golfier_wormhole)),
+                                            y=golfier_wormhole.Pe,
+                                            z=golfier_wormhole.Da,
+                                            hovertext = "Golfier Wormhole",
+                                            mode="markers",
+                                            marker = dict(
+                                                            symbol = 'diamond-open',
+                                                            color = 'black'
+                                            )))     
+        fig.add_trace(go.Scatter3d(
+                                            x=np.ones(3),
+                                            y=golfier_compact.Pe,
+                                            z=golfier_compact.Da,
+                                            hovertext = "Golfier Compact",
+                                            mode="markers",
+                                            marker = dict(
+                                                            symbol = 'square-open',
+                                                            color = 'black'
+                                            )))      
+        # fig.add_trace(go.Scatter3d(
+        #                             x = [1,1],
+        #                             y = [0.0001,10000],
+        #                             z = [0.00042,0.00042],
+        #                             mode="lines",
+        #                             line=dict(
+        #                                 color='black',
+        #                                 width=5
+        #                             )))
+        # fig.add_trace(go.Scatter3d(
+        #                             x = [1,1],
+        #                             y = [0.0015,0.0015],
+        #                             z = [0.00042,1000],
+        #                             mode="lines",
+        #                             line=dict(
+        #                                 color='black',
+        #                                 width=5
+        #                             )))                            
+        # fig.add_trace(go.Scatter3d(
+        #                             x=[1,1,1],
+        #                             y=[0.0002,3,3],
+        #                             z=[2,0.0001,2],
+        #                             text=["Compact","Uniform","Wormhole"],
+        #                             textposition="middle center",
+        #                             mode="text"))                           
+        # fig.add_trace(go.Scatter3d(
+        #                             x=[1,5.5],
+        #                             y=[50,10000],
+        #                             z=[0.0000001,0.0000001],
+        #                             mode="lines",
+        #                             line=dict(
+        #                                 color='black',
+        #                                 width=5)))   
+        # fig.add_trace(go.Scatter3d(
+        #                             x=[1,10],
+        #                             y=[0.0015,0.0015],
+        #                             z=[0.0000001,0.0000001],
+        #                             mode="lines",
+        #                             line=dict(
+        #                                 color='black',
+        #                                 width=5)))                                                           
+        # fig.add_trace(go.Scatter3d(
+        #                             x=[4.5,2,8],
+        #                             y=[0.0002,1000,100],
+        #                             z=[0.0000002,0.0000002,0.0000002],
+        #                             text=["Compact","Uniform","Wormhole"],
+        #                             textposition="middle center",
+        #                             mode="text")) 
+        # x_pc = [8.909,8.909,8.909,6.742,6.742,6.742,2.843,2.843,2.843]
+        # y_Pe = [5e-4,0.5,50,5e-4,0.5,50,5e-4,0.5,50]
+        # z_Da = [120.4,0.1204,0.001204,68.64,0.06864,0.0006864,134.2,.1342,0.001342]
+        # fig.add_trace(go.Scatter3d(
+        #                             x=x_pc,y=y_Pe,z=z_Da,
+        #                             mode="markers",
+        #                             hovertext = "new sim?",
+        #                             marker=dict(
+        #                                 color="orange"
+        #                             )
+        # ))
+        fig.update_layout(scene = dict(
+                            xaxis_title='pc',
+                            yaxis_title='Pe',
+                            zaxis_title='adv Da',
+                            yaxis=dict(type='log',range=[-4,4],),
+                            zaxis=dict(type='log',range=[-7,3])))                                  
+        if save:
+            fig.write_html(directory+"\Pe_advDa_pc_golfier_proposedpoints.html")
+        fig.show()
+    elif plot_diffDa:
+        fig = go.Figure(data=[go.Scatter3d(
+                                            x=df.pc,
+                                            y=df.Pe,
+                                            z=df.diff_Da,
+                                            hovertext=df.Sample_Name,
+                                            mode = 'markers',
+                                            marker = dict(
+                                                            symbol = markers,
+                                                            # size=scaled_ratio,
+                                                            color='blue'
+                                            ))])                                    
+        fig.add_trace(go.Scatter3d(
+                                            x=np.ones(len(golfier_uniform)),
+                                            y=golfier_uniform.Pe,
+                                            z=golfier_uniform.Pe*golfier_uniform.Da,
+                                            hovertext = "Golfier Uniform",
+                                            mode="markers",
+                                            marker = dict(
+                                                            symbol = 'circle-open',
+                                                            color = 'black'
+                                            )))
+        fig.add_trace(go.Scatter3d(
+                                            x=np.ones(len(golfier_wormhole)),
+                                            y=golfier_wormhole.Pe,
+                                            z=golfier_wormhole.Pe*golfier_wormhole.Da,
+                                            hovertext = "Golfier Wormhole",
+                                            mode="markers",
+                                            marker = dict(
+                                                            symbol = 'diamond-open',
+                                                            color = 'black'
+                                            )))     
+        fig.add_trace(go.Scatter3d(
+                                            x=np.ones(3),
+                                            y=golfier_compact.Pe,
+                                            z=golfier_compact.Pe*golfier_compact.Da,
+                                            hovertext = "Golfier Compact",
+                                            mode="markers",
+                                            marker = dict(
+                                                            symbol = 'square-open',
+                                                            color = 'black'
+                                            )))      
+        # fig.add_trace(go.Scatter3d(
+        #                             x = [1,1],
+        #                             y = [0.0001,10000],
+        #                             z = [0.0000001,10],
+        #                             mode="lines",
+        #                             line=dict(
+        #                                 color='black',
+        #                                 width=5
+        #                             )))
+        # fig.add_trace(go.Scatter3d(
+        #                             x = [1,1],
+        #                             y = [0.0015,0.0015],
+        #                             z = [0.000001,1000],
+        #                             mode="lines",
+        #                             line=dict(
+        #                                 color='black',
+        #                                 width=5
+        #                             )))                            
+        # fig.add_trace(go.Scatter3d(
+        #                             x=[1,1,1],
+        #                             y=[0.0002,10,.3],
+        #                             z=[0.001,0.001,1],
+        #                             text=["Compact","Uniform","Wormhole"],
+        #                             textposition="middle center",
+        #                             mode="text"))                           
+        # fig.add_trace(go.Scatter3d(
+        #                             x=[1,5.5],
+        #                             y=[50,10000],
+        #                             z=[0.1,0.1],
+        #                             mode="lines",
+        #                             line=dict(
+        #                                 color='black',
+        #                                 width=5)))   
+        # fig.add_trace(go.Scatter3d(
+        #                             x=[1,10],
+        #                             y=[0.0015,0.0015],
+        #                             z=[0.1,0.1],
+        #                             mode="lines",
+        #                             line=dict(
+        #                                 color='black',
+        #                                 width=5)))                                                           
+        # fig.add_trace(go.Scatter3d(
+        #                             x=[4.5,2,8],
+        #                             y=[0.0002,1000,100],
+        #                             z=[0.2,0.2,0.2],
+        #                             text=["Compact","Uniform","Wormhole"],
+        #                             textposition="middle center",
+        #                             mode="text")) 
+        # x_pc = [8.909,8.909,8.909,6.742,6.742,6.742,2.843,2.843,2.843]
+        # y_Pe = [5e-4,0.5,50,5e-4,0.5,50,5e-4,0.5,50]
+        # z_Da = [120.4,0.1204,0.001204,68.64,0.06864,0.0006864,134.2,.1342,0.001342]
+        # fig.add_trace(go.Scatter3d(
+        #                             x=x_pc,y=y_Pe,z=np.multiply(y_Pe,z_Da),
+        #                             mode="markers",
+        #                             hovertext = "new sim?",
+        #                             marker=dict(
+        #                                 color="orange"
+        #                             )
+        # ))
+        fig.update_layout(scene = dict(
+                            xaxis_title='pc',
+                            yaxis_title='Pe',
+                            zaxis_title='K',
+                            yaxis=dict(type='log',range=[-4,4],),
+                            zaxis=dict(type='log',range=[-6,1])))      
+        if save:
+            fig.write_html(directory+"\Pe_diffDa_pc_golfier_v1.html")
+
+        fig.show()
+elif plot_2D:
+    if plot_diffDa:
+        fig = go.Figure(data=[go.Scatter(x=df.Pe,
+                                        y=df.diff_Da,
+                                        hovertext=df.Sample_Name,
+                                        mode = 'markers',
+                                        marker = dict(
+                                                        symbol = markers,
+                                                        size=markersize,
+                                                        color='blue'
+                                        ))])
+        fig.add_trace(go.Scatter(   x=golfier_uniform.Pe,
+                                    y=golfier_uniform.Pe*golfier_uniform.Da,
                                     hovertext = "Golfier Uniform",
                                     mode="markers",
                                     marker = dict(
-                                                    color = 'red'
+                                                    symbol = 'circle-open',
+                                                    color = 'black',
+                                                    size=markersize
                                     )))
-fig.add_trace(go.Scatter3d(
-                                    x=np.ones(len(golfier_wormhole)),
-                                    y=golfier_wormhole.Pe,
-                                    z=golfier_wormhole.Da,
+        fig.add_trace(go.Scatter(   x=golfier_wormhole.Pe,
+                                    y=golfier_wormhole.Pe*golfier_wormhole.Da,
                                     hovertext = "Golfier Wormhole",
                                     mode="markers",
                                     marker = dict(
-                                                    color = 'blue'
+                                                    symbol = 'diamond-open',
+                                                    color = 'black',
+                                                    size=markersize
                                     )))     
-fig.add_trace(go.Scatter3d(
-                                    x=np.ones(3),
-                                    y=golfier_compact.Pe,
-                                    z=golfier_compact.Da,
+        fig.add_trace(go.Scatter(   x=golfier_compact.Pe,
+                                    y=golfier_compact.Pe*golfier_compact.Da,
                                     hovertext = "Golfier Compact",
                                     mode="markers",
                                     marker = dict(
-                                                    color = 'green'
-                                    )))      
-fig.add_trace(go.Scatter3d(
-                            x = [1,1],
-                            y = [0.0001,10000],
-                            z = [0.00042,0.00042],
-                            mode="lines",
-                            line=dict(
-                                color='black',
-                                width=5
-                            )))
-fig.add_trace(go.Scatter3d(
-                            x = [1,1],
-                            y = [0.0015,0.0015],
-                            z = [0.00042,1000],
-                            mode="lines",
-                            line=dict(
-                                color='black',
-                                width=5
-                            )))                            
-fig.add_trace(go.Scatter3d(
-                            x=[1,1,1],
-                            y=[0.0002,3,3],
-                            z=[2,0.0001,2],
-                            text=["Compact","Uniform","Wormhole"],
-                            textposition="middle center",
-                            mode="text"))                           
-fig.add_trace(go.Scatter3d(
-                            x=[1,5.5],
-                            y=[50,10000],
-                            z=[0.0000001,0.0000001],
-                            mode="lines",
-                            line=dict(
-                                color='black',
-                                width=5)))   
-fig.add_trace(go.Scatter3d(
-                            x=[1,10],
-                            y=[0.0015,0.0015],
-                            z=[0.0000001,0.0000001],
-                            mode="lines",
-                            line=dict(
-                                color='black',
-                                width=5)))                                                           
-fig.add_trace(go.Scatter3d(
-                            x=[4.5,2,8],
-                            y=[0.0002,1000,100],
-                            z=[0.0000002,0.0000002,0.0000002],
-                            text=["Compact","Uniform","Wormhole"],
-                            textposition="middle center",
-                            mode="text")) 
-x_pc = [8.909,8.909,8.909,6.742,6.742,6.742,2.843,2.843,2.843]
-y_Pe = [5e-4,0.5,50,5e-4,0.5,50,5e-4,0.5,50]
-z_Da = [120.4,0.1204,0.001204,68.64,0.06864,0.0006864,134.2,.1342,0.001342]
-fig.add_trace(go.Scatter3d(
-                            x=x_pc,y=y_Pe,z=z_Da,
-                            mode="markers",
-                            hovertext = "new sim?",
-                            marker=dict(
-                                color="orange"
-                            )
-))
-fig.update_layout(scene = dict(
-                    xaxis_title='pc',
-                    yaxis_title='Pe',
-                    zaxis_title='adv Da',
-                    yaxis=dict(type='log',range=[-4,4],),
-                    zaxis=dict(type='log',range=[-7,3])))                                  
-
-# fig.write_html(directory+"\Pe_advDa_pc_golfier_proposedpoints.html")
-# fig.show()
-
-fig = go.Figure(data=[go.Scatter3d(
-                                    x=df.pc,
-                                    y=df.Pe,
-                                    z=df.diff_Da,
-                                    hovertext=df.Sample_Name,
-                                    mode = 'markers',
-                                    marker = dict(
-                                                    # size=scaled_ratio,
-                                                    color=colors
-                                    ))])                                    
-fig.add_trace(go.Scatter3d(
-                                    x=np.ones(len(golfier_uniform)),
-                                    y=golfier_uniform.Pe,
-                                    z=golfier_uniform.Pe*golfier_uniform.Da,
-                                    hovertext = "Golfier Uniform",
-                                    mode="markers",
-                                    marker = dict(
-                                                    color = 'red'
+                                                    symbol = 'triangle-up-open',
+                                                    color = 'black',
+                                                    size=markersize
+                                    ))) 
+        if add_cutoffs:
+            fig.add_trace(go.Scatter(
+                                    x = [0.00001,10000],
+                                    y = [1e-9,10],
+                                    mode="lines",
+                                    line=dict(
+                                        color='black',
+                                        width=5
                                     )))
-fig.add_trace(go.Scatter3d(
-                                    x=np.ones(len(golfier_wormhole)),
-                                    y=golfier_wormhole.Pe,
-                                    z=golfier_wormhole.Pe*golfier_wormhole.Da,
-                                    hovertext = "Golfier Wormhole",
-                                    mode="markers",
-                                    marker = dict(
-                                                    color = 'blue'
-                                    )))     
-fig.add_trace(go.Scatter3d(
-                                    x=np.ones(3),
-                                    y=golfier_compact.Pe,
-                                    z=golfier_compact.Pe*golfier_compact.Da,
-                                    hovertext = "Golfier Compact",
-                                    mode="markers",
-                                    marker = dict(
-                                                    color = 'green'
-                                    )))      
-fig.add_trace(go.Scatter3d(
-                            x = [1,1],
-                            y = [0.0001,10000],
-                            z = [0.0000001,10],
-                            mode="lines",
-                            line=dict(
-                                color='black',
-                                width=5
-                            )))
-fig.add_trace(go.Scatter3d(
-                            x = [1,1],
-                            y = [0.0015,0.0015],
-                            z = [0.000001,1000],
-                            mode="lines",
-                            line=dict(
-                                color='black',
-                                width=5
-                            )))                            
-fig.add_trace(go.Scatter3d(
-                            x=[1,1,1],
-                            y=[0.0002,10,.3],
-                            z=[0.001,0.001,1],
-                            text=["Compact","Uniform","Wormhole"],
-                            textposition="middle center",
-                            mode="text"))                           
-fig.add_trace(go.Scatter3d(
-                            x=[1,5.5],
-                            y=[50,10000],
-                            z=[0.1,0.1],
-                            mode="lines",
-                            line=dict(
-                                color='black',
-                                width=5)))   
-fig.add_trace(go.Scatter3d(
-                            x=[1,10],
-                            y=[0.0015,0.0015],
-                            z=[0.1,0.1],
-                            mode="lines",
-                            line=dict(
-                                color='black',
-                                width=5)))                                                           
-fig.add_trace(go.Scatter3d(
-                            x=[4.5,2,8],
-                            y=[0.0002,1000,100],
-                            z=[0.2,0.2,0.2],
-                            text=["Compact","Uniform","Wormhole"],
-                            textposition="middle center",
-                            mode="text")) 
-x_pc = [8.909,8.909,8.909,6.742,6.742,6.742,2.843,2.843,2.843]
-y_Pe = [5e-4,0.5,50,5e-4,0.5,50,5e-4,0.5,50]
-z_Da = [120.4,0.1204,0.001204,68.64,0.06864,0.0006864,134.2,.1342,0.001342]
-# fig.add_trace(go.Scatter3d(
-#                             x=x_pc,y=y_Pe,z=np.multiply(y_Pe,z_Da),
-#                             mode="markers",
-#                             hovertext = "new sim?",
-#                             marker=dict(
-#                                 color="orange"
-#                             )
-# ))
-fig.update_layout(scene = dict(
-                    xaxis_title='pc',
-                    yaxis_title='Pe',
-                    zaxis_title='K',
-                    yaxis=dict(type='log',range=[-4,4],),
-                    zaxis=dict(type='log',range=[-6,1])))      
-fig.write_html(directory+"\Pe_diffDa_pc_golfier_v1.html")
+            fig.add_trace(go.Scatter(
+                                    x = [0.002,0.002],
+                                    y = [3.5e-7,1000],
+                                    mode="lines",
+                                    line=dict(
+                                        color='black',
+                                        width=5
+                                    )))                            
+            fig.add_annotation(x = 1,y = 2,xref='x',yref='y',
+                                text="Wormhole",showarrow=False)
+                                # font={"family":font,'size':labelsize})         
+            fig.add_annotation( x= 10, y = 0.001,xref='x',
+                                text="xxxx",
+                                font={"family":font,'size':labelsize})   
+            fig.add_annotation( x= 0.00075, y = 1, xref='x',
+                                text="Compact",
+                                font={"family":font,'size':labelsize}) 
+        fig.update_xaxes(title='Peclet Number',range=[-3.5,4],type='log', tickfont= {"family":font,'size':ticksize},titlefont= {"family":font,'size':labelsize})
+        fig.update_yaxes(title = 'Kinetic Number',range=[-6.5,1.5],type='log', tickfont= {"family":font,'size':ticksize},titlefont= {"family":font,'size':labelsize})
+        fig.update_layout(margin=dict(l=20, r=20, t=20, b=20),showlegend=False)
+            # scene = dict(
+            #                 xaxis_title='Pe',
+            #                 yaxis_title='K',
+            #                 xaxis=dict(type='log',range=[-4,4]),
+            #                 yaxis=dict(type='log',range=[-6,1]))) 
+        if save:
+            fig.write_image("interpore/Pe_K_golfierdata.png")
+        if show:
+            fig.show()
 
-fig.show()
-
-fig = px.scatter_3d(df, x='pc', y='Pe', z='diff_Da',size='ratio',size_max=100,
-            color='behavior',hover_name='Sample_Name')
+# fig = px.scatter_3d(df, x='pc', y='Pe', z='diff_Da',size='ratio',size_max=100,
+#             color='behavior',hover_name='Sample_Name')
 
 # fig.write_html(directory+"\Pe_diffDa_pc_ratio_beh_all.html")
 
 # fig.show()
-fig = px.scatter_3d(df, x='pc', y='Pe', z='adv_Da',size='ratio',size_max=100,
-            color='behavior',log_z=True)
+# fig = px.scatter_3d(df, x='pc', y='Pe', z='adv_Da',size='ratio',size_max=100,
+#             color='behavior',log_z=True)
 # fig.write_html(directory+"\Pe_advDa_pc_ratio_beh_all.html")
 
 # fig.show()
