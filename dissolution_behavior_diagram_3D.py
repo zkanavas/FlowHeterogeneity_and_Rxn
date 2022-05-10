@@ -230,32 +230,31 @@ if plot_3D:
                                         color='black',
                                         width=3
                                     )))    
-                                    
-                                                  
-        # fig.add_trace(go.Scatter3d(
+                                                          
+        fig.add_trace(go.Scatter3d(
+                                    x=[1,6],
+                                    y=[20,10000],
+                                    z=[10,10],
+                                    mode="lines",
+                                    line=dict(
+                                        color='black',
+                                        width=3)))   
+        
+        fig.add_trace(go.Scatter3d(
+                                    x=[1,13],
+                                    y=[0.002,0.002],
+                                    z=[10,10],
+                                    mode="lines",
+                                    line=dict(
+                                        color='black',
+                                        width=3)))     
+                # fig.add_trace(go.Scatter3d(
         #                             x=[1,1,1],
         #                             y=[0.1,10,.3],
         #                             z=[0.001,1e-6,1],
         #                             text=["Compact","Uniform","Wormhole"],
         #                             textposition="middle center",
-        #                             mode="text"))                           
-        # fig.add_trace(go.Scatter3d(
-        #                             x=[1,5.5],
-        #                             y=[50,10000],
-        #                             z=[0.1,0.1],
-        #                             mode="lines",
-        #                             line=dict(
-        #                                 color='black',
-        #                                 width=3)))   
-        
-        # fig.add_trace(go.Scatter3d(
-        #                             x=[1,10],
-        #                             y=[0.0015,0.0015],
-        #                             z=[0.1,0.1],
-        #                             mode="lines",
-        #                             line=dict(
-        #                                 color='black',
-        #                                 width=3)))                                                           
+        #                             mode="text"))                                                           
         # fig.add_trace(go.Scatter3d(
         #                             x=[4.5,2,8],
         #                             y=[0.0002,1000,100],
