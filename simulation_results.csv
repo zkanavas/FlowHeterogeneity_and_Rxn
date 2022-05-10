@@ -1,0 +1,7 @@
+Sample_Name,pub_or_sim,behavior,Pe,Da,K,reff,pc_initial,pc_final
+ket0.1ph3.1,pub,wormhole,681,1.02E-04,6.95E-02,2.23E-05,8.909,7.81
+ket0.1ph3.1,sim,wormhole,61,1.27e-3,7.75e-2,1.365323e-04,8.909,3.561 
+ket0.1ph3.1,sim,compact,0.61,1.27e-1,7.75e-2,3.069866e-05,8.909,1.369
+ket0.1ph3.1,sim,compact,6.1e-4,127,7.75e-2,5.609641e-05,8.909,1.574
+est0.1ph3.1,pub,wormhole,436,1.02E-04,4.45E-02,9.43E-06,6.742,7.57
+ket0.1ph3.6,pub,uniform,503,4.70E-05,2.36E-02,5.12E-05,2.843,2.82
