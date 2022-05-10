@@ -8,8 +8,10 @@ import matplotlib.pyplot as plt
 
 calc_components = False
 calc_percolation_threshold = False
-calc_EMD = True
+calc_EMD = False
 calc_V_S = False
+
+calc_components_single = True
 
 df = pd.read_csv("flow_transport_rxn_properties.csv",header=0,index_col=0)
 
@@ -17,6 +19,25 @@ rootdir =r"F:\FlowHet_RxnDist"
 folders_to_look_thru = ["Menke2015","Menke2017","AlKhulaifi2018","AlKhulaifi2019","Hinz2019","PereiraNunes2016"]
 # folders_to_look_thru = ["AlKhulaifi2019"]
 reaction_phase = ["final","initial"]
+
+rootdir = r"C:\Users\zkana\Downloads\data"
+folders_to_look_thru = ["60min","simi"]
+reaction_phase = []
+
+if calc_components_single:
+    for (root,dirs,files) in os.walk(rootdir):
+        if any(folder in root for folder in folders_to_look_thru):
+            imagesize = (498,498,324)
+            for file in files:
+                if ".mat" in file:
+                    #file is the matlab file of the velocity components, need to make it magnitude
+                    vel_components_file = root+"/"+file
+                    vel_magnitude_file = root+"/vel_magnitude.raw"
+                    Ux = []
+                    Uy = []
+                    Uz = []
+                    vel_magnitude=convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,clip_velocity_field=False,loadfrommat=True,loadfromraw=False,loadfromdat=False,datatype = 'float64')
+
 
 if calc_components:
     for (root,dirs,files) in os.walk(rootdir):

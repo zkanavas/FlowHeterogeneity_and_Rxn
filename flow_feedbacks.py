@@ -9,8 +9,8 @@ final_flow_props = pd.read_csv("final_flow_trans_rxn_prop.csv",header=0,index_co
 final_flow_props.drop(['Hinz2019'],inplace=True) #don't have final structure for ketton --> from Pereira-Nunes 2016
 samples = initial_flow_props.index
 
-plot_initialfinal=False
-plot_flow_rxnratio = True
+plot_initialfinal=True
+plot_flow_rxnratio = False
 plot_legend = False
 
 flowmetric = "pc"
