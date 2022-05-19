@@ -306,7 +306,7 @@ if plot_3D:
                             margin=dict(l=1, r=1, t=1, b=1),showlegend=False)    
         
         if save:
-            fig.write_html(directory+"\Pe_diffDa_pc_4sims.html")
+            fig.write_html(directory+"\Pe_diffDa_pc_kettonsimis.html")
         if show:
             fig.show()
 elif plot_2D:

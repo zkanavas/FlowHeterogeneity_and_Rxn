@@ -4,9 +4,9 @@ import pandas as pd
 import numpy as np
 
 initial_flow_props = pd.read_csv("flow_transport_rxn_properties.csv",header=0,index_col=0)
-initial_flow_props.drop(['ketton','Hinz2019'],inplace=True) #don't have final structure for ketton --> from Pereira-Nunes 2016
+initial_flow_props.drop(['ketton'],inplace=True) #don't have final structure for ketton --> from Pereira-Nunes 2016
 final_flow_props = pd.read_csv("final_flow_trans_rxn_prop.csv",header=0,index_col=0)
-final_flow_props.drop(['Hinz2019'],inplace=True) #don't have final structure for ketton --> from Pereira-Nunes 2016
+# final_flow_props.drop(['Hinz2019'],inplace=True) #don't have final structure for ketton --> from Pereira-Nunes 2016
 samples = initial_flow_props.index
 
 plot_initialfinal=True
@@ -29,25 +29,29 @@ if plot_initialfinal:
     for samp in samples:
         # if samp == "BH": print(samp)
         behavior = initial_flow_props.behavior[samp]
-        if behavior == "uniform": color = "red" 
-        elif behavior == "wormhole": color ="blue" 
-        elif behavior == "compact": color = "green"
-        ax.scatter(initial_flow_props[flowmetric][samp],final_flow_props[flowmetric][samp], c = color, label=samp)
+       
+        if behavior == "wormhole":
+            marker = 'D'
+        elif behavior == "uniform":
+            marker  = 'o'
+        elif behavior == "compact":
+            marker = 's'
+        ax.scatter(initial_flow_props[flowmetric][samp],final_flow_props[flowmetric][samp],marker=marker, c = 'mediumblue', label=samp, alpha = 0.75)
         ind += 1
         print(samp,initial_flow_props[flowmetric][samp],final_flow_props[flowmetric][samp])
     ax.plot([4.725,4.725],[0,15],'k-')
     ax.plot([0,15],[4.725,4.725],'k-')
     lim_factor = np.std(initial_flow_props[flowmetric])/4
     lim_factor_final = np.std(final_flow_props[flowmetric])/4
-    ax.set_xlim(np.min(initial_flow_props[flowmetric])-lim_factor,np.max(initial_flow_props[flowmetric])+lim_factor)
-    ax.set_ylim(np.min(final_flow_props[flowmetric])-lim_factor_final,np.max(final_flow_props[flowmetric])+lim_factor_final)
+    ax.set_xlim(1,14)#np.min(initial_flow_props[flowmetric])-lim_factor,np.max(initial_flow_props[flowmetric])+lim_factor)
+    ax.set_ylim(1,14)#np.min(final_flow_props[flowmetric])-lim_factor_final,np.max(final_flow_props[flowmetric])+lim_factor_final)
     # ax.plot([0,np.max(initial_flow_props[flowmetric])],[0,np.max(initial_flow_props[flowmetric])],'k-')
 
     # ax.loglog()
     # ax.semilogy()
-    ax.set_xlabel("before-"+flowmetric,fontsize=15)
-    ax.set_ylabel("after-"+flowmetric,fontsize=15)
-    ax.tick_params(labelsize=12)
+    ax.set_xlabel("initial Percolation Threshold",fontsize=15)
+    ax.set_ylabel("final Percolation Threshold",fontsize=15)
+    ax.tick_params(labelsize=14)
     fig.tight_layout()
     # plt.show()
     
