@@ -18,15 +18,15 @@ plot_obs = True
 plot_uniform = False
 plot_uniformcompact = True
 
-save = False
-show = True
-add_cutoffs = True
+save = True
+show = False
+add_cutoffs = False
 font = 'Trebuchet MS'
 ticksize = 15
 labelsize = 20
 markersize = 15
 # directory = r"C:\Users\zkanavas\Pictures"
-directory = r"C:\Users\zkana\Pictures"
+directory = r"C:\Users\zkanavas\Pictures"
 
 df = pd.read_csv('flow_transport_rxn_properties.csv',header=0)
 # df.drop(3,axis=0,inplace=True)
@@ -51,13 +51,13 @@ for marker in df.behavior:
         colors.append('mediumblue')
     elif marker == "uniform":
         markers.append('circle')
-        colors.append('deepskyblue')
+        colors.append('mediumblue')
     elif marker == "compact":
-        markers.append('square-open')
+        markers.append('square')
         colors.append('mediumblue')
 size_min = 10
 size_max = 100
-scaled_ratio = ((df.ratio - np.min(df.ratio))/np.ptp(df.ratio))*(size_max-size_min)+size_min
+# scaled_ratio = ((df.ratio - np.min(df.ratio))/np.ptp(df.ratio))*(size_max-size_min)+size_min
 
 if plot_3D:
     if plot_advDa:
@@ -180,7 +180,8 @@ if plot_3D:
                                             marker = dict(
                                                             symbol = markers,
                                                             # size=scaled_ratio,
-                                                            color=colors
+                                                            color=colors,
+                                                            opacity = 0.75
                                             ))])                                    
         fig.add_trace(go.Scatter3d(
                                             x=np.ones(len(golfier_uniform)),
@@ -190,7 +191,8 @@ if plot_3D:
                                             mode="markers",
                                             marker = dict(
                                                             symbol = 'circle',
-                                                            color = 'grey'
+                                                            color = 'grey',
+                                                            opacity = 0.75
                                             )))
         fig.add_trace(go.Scatter3d(
                                             x=np.ones(len(golfier_wormhole)),
@@ -200,7 +202,8 @@ if plot_3D:
                                             mode="markers",
                                             marker = dict(
                                                             symbol = 'diamond',
-                                                            color = 'black'
+                                                            color = 'grey',
+                                                            opacity = 0.75
                                             )))     
         fig.add_trace(go.Scatter3d(
                                             x=np.ones(3),
@@ -209,10 +212,12 @@ if plot_3D:
                                             hovertext = "Golfier Compact",
                                             mode="markers",
                                             marker = dict(
-                                                            symbol = 'square-open',
-                                                            color = 'black'
-                                            )))      
-        fig.add_trace(go.Scatter3d(
+                                                            symbol = 'square',
+                                                            color = 'grey',
+                                                            opacity = 0.75
+                                            )))  
+        if add_cutoffs:                                        
+            fig.add_trace(go.Scatter3d(
                                     x = [1,1],
                                     y = [0.00001,10000],
                                     z = [1e-9,10],
@@ -221,7 +226,7 @@ if plot_3D:
                                         color='black',
                                         width=3
                                     )))
-        fig.add_trace(go.Scatter3d(
+            fig.add_trace(go.Scatter3d(
                                     x = [1,1],
                                     y = [0.002,0.002],
                                     z = [3.5e-7,1000],
@@ -231,7 +236,7 @@ if plot_3D:
                                         width=3
                                     )))    
                                                           
-        fig.add_trace(go.Scatter3d(
+            fig.add_trace(go.Scatter3d(
                                     x=[1,6],
                                     y=[20,10000],
                                     z=[10,10],
@@ -240,7 +245,7 @@ if plot_3D:
                                         color='black',
                                         width=3)))   
         
-        fig.add_trace(go.Scatter3d(
+            fig.add_trace(go.Scatter3d(
                                     x=[1,13],
                                     y=[0.002,0.002],
                                     z=[10,10],
@@ -301,7 +306,7 @@ if plot_3D:
                             margin=dict(l=1, r=1, t=1, b=1),showlegend=False)    
         
         if save:
-            fig.write_html(directory+"\Pe_diffDa_pc_golfier_v1.html")
+            fig.write_html(directory+"\Pe_diffDa_pc_4sims.html")
         if show:
             fig.show()
 elif plot_2D:
