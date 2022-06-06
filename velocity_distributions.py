@@ -20,7 +20,7 @@ import pandas as pd
 # sample_descriptor = "alkhulafi_silurian"
 # imagesize = (946, 946, 390)
 # datatype = 'float16'
-plot = False
+plot = True
 load_structure = False
 #data directory
 directory = os.path.normpath(r'E:\FlowHet_RxnDist')
@@ -37,22 +37,23 @@ directory = os.path.normpath(r'E:\FlowHet_RxnDist')
 directory = [r"F:\FlowHet_RxnDist\menke_2017_ketton_reaction_extraspace\Batch001\1DStatistics_Batch001\StokesResult",r"F:\FlowHet_RxnDist\menke_2017_ketton_reaction_extraspace\Batch100\1DStatistics_Batch100\StokesResult"]
 sample_descriptor = ["menke_2017_ketton_setPa_initial","menke_2017_ketton_setPa_final"]
 
-directory = r"C:\Users\zkana\Downloads\data"
-sample_descriptor = ["60min","simi"]
+directory = [r"D:\FlowHet_RxnDist\Menke2017\ket0.1ph3.6\baseline\Batch100",r"D:\FlowHet_RxnDist\Menke2017\ket0.1ph3.6\structures\62minflowfield_pressuredrop"]
+sample_descriptor = ["exp","simi"]
 
 # directory = [r"F:\FlowHet_RxnDist\beadpack_uniform_reaction\Batch001\LIRStokesResult_Batch001",r"F:\FlowHet_RxnDist\beadpack_uniform_reaction\Batch098\LIRStokesResult_Batch098"]
 # sample_descriptor = ["beadpack_uniform_initial","beadpack_uniform_final"]
-labels=["exp","simi"]
-color = ['b-','r-']
+labels=["simi","exp"]
+color = ['r-','b-']
 
 fig,ax = plt.subplots()
-for count,sample in enumerate(sample_descriptor):
+# for count,sample in enumerate(sample_descriptor):
+for count,dir in enumerate(directory):
     # fig,ax = plt.subplots()
     #define extension type
     datatype = 'float32'
     #data file location
     # vel_magnitude_file = directory[count] + "/" + sample + "_velocity_magnitude.raw"
-    vel_magnitude_file = directory + "/" + sample + "/" + "vel_magnitude.raw"
+    vel_magnitude_file = dir + "/" + "vel_magnitude.raw"
 
     #load images
     vel_magnitude = np.fromfile(vel_magnitude_file, dtype=np.dtype(datatype)) 
@@ -75,10 +76,10 @@ for count,sample in enumerate(sample_descriptor):
     # std = np.std(vel_magnitude)
     # var = std**2
     # print(sample,mean,std)
-    vel_magnitude /= mean
+    # vel_magnitude /= mean
     mean = np.mean(vel_magnitude)
     std = np.std(vel_magnitude)
-    print(sample,mean,std)
+    print(labels[count],mean,std)
 
     #make histogram
     if plot == True:
@@ -93,7 +94,7 @@ if plot == True:
     ax.semilogx()
     ax.tick_params(axis='both',labelsize=14)
     # ax.set_xlim(1e-10,1e5)
-    ax.set_xlabel('V/<V>', fontsize=15)
+    ax.set_xlabel('V', fontsize=15)
     ax.set_ylabel('PDF',fontsize=15)
     ax.legend()
     plt.tight_layout()
