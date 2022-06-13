@@ -1,3 +1,4 @@
+from more_itertools import sample
 import numpy as np
 import os
 import pandas as pd
@@ -37,12 +38,21 @@ M_calcite = 0.1 #[kg mol-1]
 # print("final percent change: ", percent_change[-1]*100, "%")
 
 # datafile = os.path.normpath(r'D:\FlowHet_RxnDist\Menke2017\ket0.1ph3.1\baseline_100batches_v2\porosity_SSA_changes.csv')
-datafile = os.path.normpath(r'C:\Users\zkanavas\Documents\FlowHeterogeneity_and_Rxn\porosity_SSA_changes_allsimis.csv')
+datafile = os.path.normpath(r'C:\Users\zkana\Documents\FlowHeterogeneity_and_Rxn\porosity_SSA_changes_allsimis.csv')
 changes = pd.read_csv(datafile,header=0)
 samplenames = changes.sample_name.unique()
 timestep = 3600/100 #s
 
 for samplename in samplenames:
+    if samplename == "estaillades":
+        phi_grain = 0
+    elif samplename == "ket0.1ph3.6":
+        phi_grain = (0.23-0.131)/(1-.131)
+    elif samplename == "ket0.1ph3.1":
+        phi_grain = (0.23-0.114)/(1-.114)
+    else: 
+        print("wrong sample name :", samplename)
+        continue
     print("results for sample: ",samplename)
     changeforsample = changes[changes.sample_name == samplename]
     Pe = changeforsample.initial_Pe.unique()
@@ -57,8 +67,8 @@ for samplename in samplenames:
             reff.append(r_eff(rho_calcite,phi_grain,M_calcite,changeforsamplePe.specific_surface_area[ind-1],phi_change,timestep))
         print("average effective reaction rate: ", np.mean(reff))
         diff = abs(np.diff(reff))
-        rateof_change = diff/reff[-1]
-        print("final rate of change:", abs(np.diff(rateof_change))[-1]*100, "%")
+        rateof_change = diff/reff[:-1]
+        print("final rate of change:", (rateof_change)[-1]*100, "%")
 
 # fig,ax = plt.subplots()
 # for ind in range(1,(len(changes))):
