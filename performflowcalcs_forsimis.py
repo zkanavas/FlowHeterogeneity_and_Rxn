@@ -6,7 +6,7 @@ import pandas as pd
 import time
 import matplotlib.pyplot as plt
 
-rootdir = r"D:\FlowHet_RxnDist\Menke2017\ket0.1ph3.6"
+rootdir = r"F:\FlowHet_RxnDist\Menke2017\ket0.1ph3.6"
 folders_to_look_thru = ["Pe50"]
 batch = "Batch100"
 # folders_to_look_thru = ["Pe0.5_cont"]

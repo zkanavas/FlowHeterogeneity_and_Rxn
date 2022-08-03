@@ -10,7 +10,13 @@ def r_eff(rho,phi_grain,M_mineral,S,phi_change,time_change):
     reff = ((rho*(1-phi_grain))/(M_mineral*S))*(phi_change/time_change)
     return reff
 
-
+def check_convergence(roc, threshold=.2):
+    for ind,r in enumerate(roc):
+        if all(roc[ind:] < threshold):
+            # print("converged")
+            return ind
+        else:
+            continue
 # structure_file = os.path.normpath(r'D:\FlowHet_RxnDist\Menke2017\ket0.1ph3.1\structures\Porositytime0\sample_sleeve_comb.raw')
 
 # struct = np.fromfile(structure_file, dtype=np.dtype('int8'))
@@ -68,6 +74,8 @@ for samplename in samplenames:
         print("average effective reaction rate: ", np.mean(reff))
         diff = abs(np.diff(reff))
         rateof_change = diff/reff[:-1]
+        ind = check_convergence(rateof_change)
+        print(ind)
         print("final rate of change:", (rateof_change)[-1]*100, "%")
 
 # fig,ax = plt.subplots()

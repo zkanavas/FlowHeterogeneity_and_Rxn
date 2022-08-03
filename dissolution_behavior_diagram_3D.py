@@ -7,8 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 plot_golfier = False
-plot_3D = True
-plot_2D = False
+plot_3D = False
+plot_2D = True
 
 plot_advDa = False
 plot_diffDa = True
@@ -18,9 +18,9 @@ plot_obs = True
 plot_uniform = False
 plot_uniformcompact = True
 
-save = False
+save = True
 show = True
-add_cutoffs = False
+add_cutoffs = True
 font = 'Trebuchet MS'
 ticksize = 15
 labelsize = 20
@@ -312,30 +312,30 @@ if plot_3D:
 elif plot_2D:
     if plot_diffDa:
         if plot_obs:
-            if plot_uniform:
-                df = df[df['behavior']=='uniform']
-            elif plot_uniformcompact:
-                df = df[df['behavior']!='wormhole']
-            markers = []
-            colors = []
-            for marker in df.behavior:
-                if marker == "wormhole":
-                    markers.append('diamond')
-                    colors.append('mediumblue')
-                elif marker == "uniform":
-                    markers.append('circle')
-                    colors.append('deepskyblue')
-                elif marker == "compact":
-                    markers.append('square-open')
-                    colors.append('mediumblue')
+            # if plot_uniform:
+            #     df = df[df['behavior']=='uniform']
+            # elif plot_uniformcompact:
+            #     df = df[df['behavior']!='wormhole']
+            # markers = []
+            # colors = []
+            # for marker in df.behavior:
+            #     if marker == "wormhole":
+            #         markers.append('diamond')
+            #         colors.append('mediumblue')
+            #     elif marker == "uniform":
+            #         markers.append('circle')
+            #         colors.append('deepskyblue')
+            #     elif marker == "compact":
+            #         markers.append('square-open')
+            #         colors.append('mediumblue')
             fig = go.Figure(data=[go.Scatter(x=df.Pe,
                                             y=df.diff_Da,
                                             hovertext=df.Sample_Name,
                                             mode = 'markers',
                                             marker = dict(
                                                             symbol = markers,
-                                                            size=markersize,
-                                                            color=colors
+                                                            color=colors,
+                                                            opacity = 0.75, size=markersize
                                             ))])
         else:
             fig = go.Figure()
@@ -347,7 +347,7 @@ elif plot_2D:
                                         marker = dict(
                                                         symbol = 'circle',
                                                         color = 'grey',
-                                                        size=markersize
+                                                        opacity = 0.75,size=markersize
                                         )))
             fig.add_trace(go.Scatter(   x=golfier_wormhole.Pe,
                                         y=golfier_wormhole.Pe*golfier_wormhole.Da,
@@ -355,17 +355,17 @@ elif plot_2D:
                                         mode="markers",
                                         marker = dict(
                                                         symbol = 'diamond',
-                                                        color = 'black',
-                                                        size=markersize
+                                                        color = 'grey',
+                                                        opacity = 0.75,size=markersize
                                         )))     
             fig.add_trace(go.Scatter(   x=golfier_compact.Pe,
                                         y=golfier_compact.Pe*golfier_compact.Da,
                                         hovertext = "Golfier Compact",
                                         mode="markers",
                                         marker = dict(
-                                                        symbol = 'square-open',
-                                                        color = 'black',
-                                                        size=markersize
+                                                        symbol = 'square',
+                                                        color = 'grey',
+                                                        opacity = 0.75,size=markersize
                                         ))) 
         if add_cutoffs:
             fig.add_trace(go.Scatter(
@@ -393,16 +393,17 @@ elif plot_2D:
             fig.add_annotation( x= -3.3, y = 0.5,xref='x',yref='y',showarrow=False,
                                 text="Compact",
                                 font={"family":font,'size':labelsize}) 
-        fig.update_xaxes(title='Peclet Number',range=[-3.9,4],type='log', tickfont= {"family":font,'size':ticksize},titlefont= {"family":font,'size':labelsize})
-        fig.update_yaxes(title = 'Kinetic Number',range=[1.5,-6.8],type='log', tickfont= {"family":font,'size':ticksize},titlefont= {"family":font,'size':labelsize})
-        fig.update_layout(margin=dict(l=20, r=20, t=20, b=20),showlegend=False)
+        fig.update_xaxes(title='Peclet Number',range=[-3.9,4],type='log', tickfont= {"family":font,'size':ticksize},titlefont= {"family":font,'size':labelsize},linecolor='black',linewidth=2,layer='below traces',gridcolor='lightgrey')
+        fig.update_yaxes(title = 'Kinetic Number',range=[1.5,-6.8],type='log', tickfont= {"family":font,'size':ticksize},titlefont= {"family":font,'size':labelsize},linecolor='black',linewidth=2,layer='below traces',gridcolor='lightgrey')
+        fig.update_layout(  margin=dict(l=20, r=20, t=20, b=20),plot_bgcolor='white',
+                            showlegend=False, legend={"yanchor":"top","xanchor":"right"})
             # scene = dict(
             #                 xaxis_title='Pe',
             #                 yaxis_title='K',
             #                 xaxis=dict(type='log',range=[-4,4]),
             #                 yaxis=dict(type='log',range=[-6,1]))) 
         if save:
-            fig.write_image("interpore/Pe_K_golfierdata.png")
+            fig.write_image("golfierdiagram_alldata.pdf")
         if show:
             fig.show()
 
