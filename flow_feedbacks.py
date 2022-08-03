@@ -4,9 +4,13 @@ import pandas as pd
 import numpy as np
 
 initial_flow_props = pd.read_csv("flow_transport_rxn_properties.csv",header=0,index_col=0)
-initial_flow_props.drop(['ketton'],inplace=True) #don't have final structure for ketton --> from Pereira-Nunes 2016
+initial_flow_props.drop(['Hinz2019','ketton','Menke2015',"ket0.1ph3.1_sim1","ket0.1ph3.1_sim2","ket0.1ph3.1_sim3","ket0.1ph3.6_sim1","ket0.1ph3.6_sim2","ket0.1ph3.6_sim3","estaillades_sim1","estaillades_sim2"],inplace=True) #don't have final structure for ketton --> from Pereira-Nunes 2016
 final_flow_props = pd.read_csv("final_flow_trans_rxn_prop.csv",header=0,index_col=0)
-# final_flow_props.drop(['Hinz2019'],inplace=True) #don't have final structure for ketton --> from Pereira-Nunes 2016
+
+# simulationsamples = ["ket0.1ph3.1_sim1","ket0.1ph3.1_sim2","ket0.1ph3.1_sim3","ket0.1ph3.6_sim1","ket0.1ph3.6_sim2","ket0.1ph3.6_sim3","estaillades_sim1","estaillades_sim2"]
+# samplestoremove = ["Menke2015","Hinz2019"]
+
+final_flow_props.drop(["Menke2015","Hinz2019","ket0.1ph3.1_sim1","ket0.1ph3.1_sim2","ket0.1ph3.1_sim3","ket0.1ph3.6_sim1","ket0.1ph3.6_sim2","ket0.1ph3.6_sim3"],inplace=True) #don't have final structure for ketton --> from Pereira-Nunes 2016
 samples = initial_flow_props.index
 
 plot_initialfinal=True

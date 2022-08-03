@@ -18,8 +18,8 @@ plot_obs = True
 plot_uniform = False
 plot_uniformcompact = True
 
-save = True
-show = False
+save = False
+show = True
 add_cutoffs = False
 font = 'Trebuchet MS'
 ticksize = 15
