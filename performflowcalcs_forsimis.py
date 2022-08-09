@@ -6,12 +6,12 @@ import pandas as pd
 import time
 import matplotlib.pyplot as plt
 
-rootdir = r"F:\FlowHet_RxnDist\Menke2017\ket0.1ph3.6"
-folders_to_look_thru = ["Pe50"]
+rootdir = r"D:\FlowHet_RxnDist\PereiraNunes2016\estaillades\GeoDict_simulations"
+folders_to_look_thru = ["Pe10"]
 batch = "Batch100"
-# folders_to_look_thru = ["Pe0.5_cont"]
-# batch = "Batch75"
-imagesize = (499,499,450)
+folders_to_look_thru = ["Pe0.1"]
+batch = "Batch064"
+imagesize = (650,650,650)
 for folder in folders_to_look_thru:
     #file is the matlab file of the velocity components, need to make it magnitude
     vel_components_file = rootdir+"/"+folder+"/"+batch+"/final_pressuredrop.mat"

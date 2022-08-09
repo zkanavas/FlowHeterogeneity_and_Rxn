@@ -25,11 +25,11 @@ def convert_components_into_magnitude(vel_components_file,vel_magnitude_file,ima
             
     elif loadfromraw:#use for .raw file type
         #x-direction
-        Ux_array = np.fromfile(Ux, dtype=np.dtype('float32')) #specifying bc only this direction is in this datatype
+        Ux_array = np.fromfile(Ux, dtype=np.dtype(datatype)) #specifying bc only this direction is in this datatype
         #y-direction
-        Uy_array = np.fromfile(Uy, dtype=np.dtype(datatype))
+        Uy_array = np.fromfile(Uy, dtype=np.dtype('float64'))
         # z-direction
-        Uz_array = np.fromfile(Uz, dtype=np.dtype(datatype)) 
+        Uz_array = np.fromfile(Uz, dtype=np.dtype('float64')) 
         if clip_velocity_field: 
             #adjust image size
             imagesize[2]+=20
@@ -94,9 +94,20 @@ def earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_c
         vel_magnitude = vel_magnitude.reshape(imagesize)
         # structure_file = directory + "/" + sample + "_structure.raw"
         structure = np.fromfile(structure_file,dtype=np.dtype('uint8'))
-        structure = structure.reshape((imagesize[0],imagesize[1],imagesize[2]))
+        structure = structure.reshape((imagesize[2],imagesize[1],imagesize[0]))
+        structure = np.swapaxes(structure,0,2)
+        #want to add a check here to make sure the axes between the matrices are aligned
+        print('checking axes')
+        fig,(ax1,ax2) = plt.subplots(1,2)
+        ax1.set_title('velocity magnitude, size: '+str(vel_magnitude.shape))
+        ax1.imshow(vel_magnitude[:,:,0],origin = 'lower')
+        ax2.set_title('structure, size: '+ str(structure.shape))
+        ax2.imshow(structure[:,:,0],origin='lower')
+        fig.suptitle(imagesize)
+        plt.show()
+        poreID = int(input("Enter code for the pore space: "))
         #remove grains
-        vel_magnitude = vel_magnitude[structure == 0]
+        vel_magnitude = vel_magnitude[structure == poreID]
     else:
         vel_magnitude = vel_magnitude[vel_magnitude != 0]
     if compare_to_Gauss:
@@ -178,6 +189,7 @@ def checkbounds(vel_normalized,percolation_threshold,imagesize):
     props = regionprops_table(labels_out,properties =['label','bbox','area'])
     props = pd.DataFrame(props)
     checking_bounds = props['bbox-5'][props['bbox-2']==0] == imagesize[2]
+    assert all(props['bbox-5']<=imagesize[2]) #if this raises an error, the dimensions must be messed up
     return any(checking_bounds)
 
 def save(vel_normalized,percolation_threshold,imagesize,velocity_regions_file):
@@ -206,12 +218,21 @@ def percolation_threshold(vel_magnitude_file,imagesize,velocity_regions_file,str
     vel_magnitude = vel_magnitude.reshape(imagesize)
 
     if load_structure == True:
-        vel_magnitude = vel_magnitude.reshape(imagesize)
         # structure_file = directory + "/" + sample + "_structure.raw"
         structure = np.fromfile(structure_file,dtype=np.dtype('uint8'))
-        structure = structure.reshape((imagesize[0],imagesize[1],imagesize[2]))
+        structure = structure.reshape((imagesize[2],imagesize[1],imagesize[0]))
+        structure = np.swapaxes(structure,0,2)
+        #want to add a check here to make sure the axes between the matrices are aligned
+        fig,(ax1,ax2) = plt.subplots(1,2)
+        ax1.set_title('velocity magnitude, size: '+str(vel_magnitude.shape))
+        ax1.imshow(vel_magnitude[:,:,0],origin = 'lower')
+        ax2.set_title('structure, size: '+ str(structure.shape))
+        ax2.imshow(structure[:,:,0],origin='lower')
+        fig.suptitle(imagesize)
+        plt.show()
+        poreID = int(input("Enter code for the pore space: "))
         #remove grains
-        vel_magnitude_nostructure = vel_magnitude[structure != 1]
+        vel_magnitude_nostructure = vel_magnitude[structure == poreID]
     else:
         vel_magnitude_nostructure = vel_magnitude[vel_magnitude != 0]
     mean = np.mean(vel_magnitude_nostructure)

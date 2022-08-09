@@ -6,23 +6,28 @@ import pandas as pd
 import time
 import matplotlib.pyplot as plt
 
-calc_components = False
-calc_percolation_threshold = False
+calc_components = True
+calc_percolation_threshold = True
 calc_EMD = False
 calc_V_S = False
 
-calc_components_single = True
+calc_components_single = False
 
 df = pd.read_csv("flow_transport_rxn_properties.csv",header=0,index_col=0)
 
-rootdir =r"F:\FlowHet_RxnDist"
-folders_to_look_thru = ["Menke2015","Menke2017","AlKhulaifi2018","AlKhulaifi2019","Hinz2019","PereiraNunes2016"]
-# folders_to_look_thru = ["AlKhulaifi2019"]
+rootdir =r"D:\FlowHet_RxnDist"
+# folders_to_look_thru = ["Menke2015","Menke2017","AlKhulaifi2018","AlKhulaifi2019"]#,"Hinz2019","PereiraNunes2016"]
+folders_to_look_thru = ["PereiraNunes2016"]
 reaction_phase = ["final","initial"]
 
-rootdir = r"C:\Users\zkana\Downloads\data"
-folders_to_look_thru = ["60min","simi"]
-reaction_phase = []
+rootdir =r"D:\FlowHet_RxnDist\Menke2017\ket0.1ph3.1\GeoDict_Simulations"
+# folders_to_look_thru = ["Menke2015","Menke2017","AlKhulaifi2018","AlKhulaifi2019"]#,"Hinz2019","PereiraNunes2016"]
+folders_to_look_thru = ["Pe_50","Pe_0.0005"]
+reaction_phase = ["Batch100"] #batchnumber
+
+# rootdir = r"C:\Users\zkana\Downloads\data"
+# folders_to_look_thru = ["60min","simi"]
+# reaction_phase = []
 
 if calc_components_single:
     for (root,dirs,files) in os.walk(rootdir):
@@ -61,7 +66,9 @@ if calc_components:
                     Uy = root + "/" + "Uy.raw"
                     Uz = root +"/" + "Uz.raw"
                     vel_magnitude_file = root+"/vel_magnitude.raw"
-                    vel_magnitude=convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,clip_velocity_field=False,loadfrommat=False,loadfromraw=True,loadfromdat=False,datatype = 'float64')
+                    if all([sample==["beadpack"],phase == ["final"]]): datatyp = 'float32'
+                    else: datatyp = 'float64'
+                    vel_magnitude=convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,clip_velocity_field=False,loadfrommat=False,loadfromraw=True,loadfromdat=False,datatype = datatyp)
                 elif "Ux" in file and ".dat" in file:
                     vel_components_file = []
                     Ux = root + "/" + "Ux.dat"
@@ -70,8 +77,8 @@ if calc_components:
                     vel_magnitude_file = root+"/vel_magnitude.raw"
                     vel_magnitude=convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,clip_velocity_field=False,loadfrommat=False,loadfromraw=False,loadfromdat=True,datatype = 'float64')
 
-indeces = [(ind+"_"+phase) for ind in df.index for phase in reaction_phase]
-res = pd.DataFrame(columns=["manual-Gaussian","manual-Gaussian_time","manual-LogNormal","manual-LogNormal_time","built-in","built-in_time"],index=indeces)
+# indeces = [(ind+"_"+phase) for ind in df.index for phase in reaction_phase]
+# res = pd.DataFrame(columns=["manual-Gaussian","manual-Gaussian_time","manual-LogNormal","manual-LogNormal_time","built-in","built-in_time"],index=indeces)
 
 for (root,dirs,files) in os.walk(rootdir):
     if any(folder in root for folder in folders_to_look_thru) and any(phase in root for phase in reaction_phase):
@@ -82,7 +89,7 @@ for (root,dirs,files) in os.walk(rootdir):
             if "vel_magnitude.raw" in file:
                 #file is the matlab file of the velocity components, need to make it magnitude
                 vel_magnitude_file = root+"/"+file
-                structure_file = []
+                structure_file = root+"/"+phase[0]+"_structure.raw"
                 if calc_EMD:
                     indi = sample[0] + "_" + phase[0]
                     print("calculating EMD for ", sample,phase)
@@ -113,6 +120,7 @@ for (root,dirs,files) in os.walk(rootdir):
                 if calc_percolation_threshold:
                     print("finding percolation threshold for ", sample,phase)
                     pc = percolation_threshold(vel_magnitude_file,imagesize,velocity_regions_file,structure_file,load_structure=False,save_regions=True,datatype='float32',tolerance = [1e-2])
+                    print(sample,phase,"pc: ",pc)
                 else: pc = []
                 if calc_V_S:
                     print("calculating V S SSA ", sample,phase)
@@ -121,5 +129,6 @@ for (root,dirs,files) in os.walk(rootdir):
                     volume = [] 
                     surfacearea = [] 
                     ssa = []
+                
                 # print(sample,phase," EMD: ",distance, " pc: ",pc, " V: ",volume, " S: ", surfacearea, " SSA: ",ssa)
-res.to_csv("EMD_variations_comparison.csv")
+# res.to_csv("EMD_variations_comparison.csv")
