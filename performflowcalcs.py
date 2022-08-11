@@ -77,8 +77,8 @@ if calc_components:
                     vel_magnitude_file = root+"/vel_magnitude.raw"
                     vel_magnitude=convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,clip_velocity_field=False,loadfrommat=False,loadfromraw=False,loadfromdat=True,datatype = 'float64')
 
-# indeces = [(ind+"_"+phase) for ind in df.index for phase in reaction_phase]
-# res = pd.DataFrame(columns=["manual-Gaussian","manual-Gaussian_time","manual-LogNormal","manual-LogNormal_time","built-in","built-in_time"],index=indeces)
+indeces = [(ind+"_"+phase) for ind in df.index for phase in reaction_phase]
+res = pd.DataFrame(columns=["manual-Gaussian","manual-Gaussian_time","manual-LogNormal","manual-LogNormal_time","built-in","built-in_time"],index=indeces)
 
 for (root,dirs,files) in os.walk(rootdir):
     if any(folder in root for folder in folders_to_look_thru) and any(phase in root for phase in reaction_phase):
