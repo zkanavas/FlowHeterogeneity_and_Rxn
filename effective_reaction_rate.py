@@ -1,8 +1,8 @@
-from more_itertools import sample
 import numpy as np
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+from skimage.measure import label, regionprops_table, marching_cubes, mesh_surface_area
 
 plot_ = False
 
@@ -17,6 +17,37 @@ def check_convergence(roc, threshold=.2):
             return ind
         else:
             continue
+
+def calc_SSA_porosity(structure_file,imagesize,datatype = 'uint8'):
+    #load image
+    npimg = np.fromfile(structure_file, dtype=np.dtype(datatype)) 
+    npimg = npimg.reshape(imagesize)
+    npimg[npimg != 0] = 1 #all pore space == 0, solid == 1
+    labels_out = label(npimg)
+    
+    #extract region's coordinates (to get surface area) and total volume (lib writes as area)
+    props = regionprops_table(labels_out,properties =['area'])
+    props = pd.DataFrame(props)
+
+    #convert to mesh format
+    verts, faces, normals, values = marching_cubes(labels_out,level=1)
+
+    #find specific surface area
+    surfacearea_grains = mesh_surface_area(verts, faces)
+    grain_volume = len(labels_out[labels_out==1])
+    assert grain_volume == len(npimg[npimg==1])
+    specificsurfacearea = surfacearea_grains/grain_volume
+
+    #find porosity
+    void_volume = len(labels_out[labels_out==0])
+    assert void_volume == len(npimg[npimg==0])
+    porosity = void_volume/(grain_volume+void_volume)
+    assert porosity == len(npimg[npimg==0])/len(npimg)
+
+    return specificsurfacearea, porosity
+
+#walk through structure files, calc reff for each (1 less reff than # of structures) (RECORD EACH)
+
 # structure_file = os.path.normpath(r'D:\FlowHet_RxnDist\Menke2017\ket0.1ph3.1\structures\Porositytime0\sample_sleeve_comb.raw')
 
 # struct = np.fromfile(structure_file, dtype=np.dtype('int8'))
