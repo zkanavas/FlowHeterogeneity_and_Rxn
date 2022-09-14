@@ -15,8 +15,8 @@ calc_components_single = False
 
 df = pd.read_csv("flow_transport_rxn_properties.csv",header=0,index_col=0)
 
-rootdir =r"H:\FlowHet_RxnDist\PereiraNunes2016"
-folders_to_look_thru = ["Menke2015","Menke2017","AlKhulaifi2018","AlKhulaifi2019"]#,"Hinz2019","PereiraNunes2016"]
+rootdir =r"H:\FlowHet_RxnDist"
+folders_to_look_thru = ["Menke2017","Menke2015","AlKhulaifi2018","AlKhulaifi2019"]#,"PereiraNunes2016"]
 # folders_to_look_thru = ["estaillades"]
 reaction_phase = ["final_pressuredrop","initial_pressuredrop"]
 
@@ -75,13 +75,14 @@ if calc_components:
                     # vel_magnitude=convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,clip_velocity_field=False,loadfrommat=False,loadfromraw=False,loadfromdat=True,datatype = 'float64')
 
 for (root,dirs,files) in os.walk(rootdir):
+    if "GeoDict_Simulations" in root: continue
     if any(folder in root for folder in folders_to_look_thru) and any(phase in root for phase in reaction_phase):
         sample = [x for x in df.index if x in root]
         imagesize = (int(df['nx'][sample].values[0]),int(df['ny'][sample].values[0]),int(df['nz'][sample].values[0]))
         phase = [phase for phase in reaction_phase if phase in root]
         for file in files:
             if "vel_magnitude.raw" in file:
-                print("calculating flow heterogeneity metrics ", sample,phase)
+                print("calculating flow heterogeneity metrics ", sample,phase, root)
                 #file is the matlab file of the velocity components, need to make it magnitude
                 vel_magnitude_file = root+"/"+file
                 structure_file = root+"/"+phase[0]+"_structure.raw"
