@@ -6,19 +6,19 @@ import pandas as pd
 import time
 import matplotlib.pyplot as plt
 
-calc_components = True
+calc_components = False
 calc_percolation_threshold = True
-calc_EMD = False
-calc_V_S = False
+calc_EMD = True
+calc_V_S = True
 
 calc_components_single = False
 
 df = pd.read_csv("flow_transport_rxn_properties.csv",header=0,index_col=0)
 
 rootdir =r"H:\FlowHet_RxnDist\PereiraNunes2016"
-# folders_to_look_thru = ["Menke2015","Menke2017","AlKhulaifi2018","AlKhulaifi2019"]#,"Hinz2019","PereiraNunes2016"]
-folders_to_look_thru = ["estaillades"]
-reaction_phase = ["final_pressuredrop_x"]#,"final_pressuredrop"]
+folders_to_look_thru = ["Menke2015","Menke2017","AlKhulaifi2018","AlKhulaifi2019"]#,"Hinz2019","PereiraNunes2016"]
+# folders_to_look_thru = ["estaillades"]
+reaction_phase = ["final_pressuredrop","initial_pressuredrop"]
 
 # rootdir =r"H:\FlowHet_RxnDist\Menke2017\ket0.1ph3.6"#\GeoDict_Simulations"
 # folders_to_look_thru = ["Menke2015","Menke2017","AlKhulaifi2018","AlKhulaifi2019"]#,"Hinz2019","PereiraNunes2016"]
@@ -56,18 +56,7 @@ if calc_components:
                     #file is the matlab file of the velocity components, need to make it magnitude
                     vel_components_file = root+"/"+file
                     vel_magnitude_file = root+"/vel_magnitude.raw"
-                    Ux = []
-                    Uy = []
-                    Uz = []
-                    vel_magnitude=convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,clip_velocity_field=True,loadfrommat=True,loadfromraw=False,loadfromdat=False,datatype = 'float64')
-                if "flowfield_x.mat" in file:continue
-                    #file is the matlab file of the velocity components, need to make it magnitude
-                    # vel_components_file = root+"/"+file
-                    # vel_magnitude_file = root+"/vel_magnitude_x.raw"
-                    # Ux = []
-                    # Uy = []
-                    # Uz = []
-                    # vel_magnitude=convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,clip_velocity_field=True,loadfrommat=True,loadfromraw=False,loadfromdat=False,datatype = 'float64')
+                    vel_magnitude=convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,loadfrommat=True,loadfromraw=False,loadfromdat=False,datatype = 'float64')
                 elif "Ux" in file and ".raw" in file:
                     vel_components_file = []
                     Ux = root + "/" + "Ux.raw"
@@ -76,7 +65,7 @@ if calc_components:
                     vel_magnitude_file = root+"/vel_magnitude.raw"
                     if all([sample==["beadpack"],phase == ["final"]]): datatyp = 'float32'
                     else: datatyp = 'float64'
-                    vel_magnitude=convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,clip_velocity_field=False,loadfrommat=False,loadfromraw=True,loadfromdat=False,datatype = datatyp)
+                    vel_magnitude=convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,loadfrommat=False,loadfromraw=True,loadfromdat=False,datatype = datatyp)
                 elif "Ux" in file and ".dat" in file: continue
                     # vel_components_file = []
                     # Ux = root + "/" + "Ux.dat"
@@ -85,9 +74,6 @@ if calc_components:
                     # vel_magnitude_file = root+"/vel_magnitude.raw"
                     # vel_magnitude=convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,clip_velocity_field=False,loadfrommat=False,loadfromraw=False,loadfromdat=True,datatype = 'float64')
 
-indeces = [(ind+"_"+phase) for ind in df.index for phase in reaction_phase]
-res = pd.DataFrame(columns=["manual-Gaussian","manual-Gaussian_time","manual-LogNormal","manual-LogNormal_time","built-in","built-in_time"],index=indeces)
-
 for (root,dirs,files) in os.walk(rootdir):
     if any(folder in root for folder in folders_to_look_thru) and any(phase in root for phase in reaction_phase):
         sample = [x for x in df.index if x in root]
@@ -95,44 +81,28 @@ for (root,dirs,files) in os.walk(rootdir):
         phase = [phase for phase in reaction_phase if phase in root]
         for file in files:
             if "vel_magnitude.raw" in file:
+                print("calculating flow heterogeneity metrics ", sample,phase)
                 #file is the matlab file of the velocity components, need to make it magnitude
                 vel_magnitude_file = root+"/"+file
                 structure_file = root+"/"+phase[0]+"_structure.raw"
                 if calc_EMD:
-                    indi = sample[0] + "_" + phase[0]
-                    print("calculating EMD for ", sample,phase)
-
-                    tic = time.time()
-                    distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=False,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',gen_ran_pop = True,compare_to_log=True,compare_to_Gauss=False)
-                    toc = time.time()
-                    res['built-in'][indi] = distance
-                    res['built-in_time'][indi] = toc - tic
-                    print("built-in EMD: ",distance)
-                    
-                    tic = time.time()
                     distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=True,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',logspacing=False,gen_ran_pop = False, compare_to_log=False,compare_to_Gauss=True)
-                    toc = time.time()
-                    res['manual-Gaussian'][indi] = distance
-                    res['manual-Gaussian_time'][indi] = toc - tic
                     print("manual-Gaussian EMD: ",distance)
 
-                    tic = time.time()
                     distance = earth_movers_distance(vel_magnitude_file,imagesize,structure_file,manually_compute=True,normalize_velocity_field=False,load_structure = False,plot = False,datatype = 'float32',logspacing=False,gen_ran_pop = False,compare_to_log=True,compare_to_Gauss=False)
-                    toc = time.time()
-                    res['manual-LogNormal'][indi] = distance
-                    res['manual-LogNormal_time'][indi] = toc - tic
                     print("manual-LogNormal EMD: ",distance)
 
                 else: distance = []
                 velocity_regions_file = root +"/_vel_regions.raw"
                 if calc_percolation_threshold:
-                    print("finding percolation threshold for ", sample,phase)
-                    pc = percolation_threshold(vel_magnitude_file,imagesize,velocity_regions_file,structure_file,load_structure=False,save_regions=True,datatype='float32',tolerance = [1e-2])
-                    print(sample,phase," pc: ",pc)
+                    pc = percolation_threshold(vel_magnitude_file,imagesize,velocity_regions_file,structure_file,load_structure=False,save_regions=True,datatype='float32',tolerance = [1e-4])
+                    print(" pc: ",pc)
                 else: pc = []
                 if calc_V_S:
-                    print("calculating V S SSA ", sample,phase)
                     volume, surfacearea, ssa = dimensionless_volume_interfacialsurfacearea_SSA(velocity_regions_file,imagesize,include_disconnected_hvr=True,datatype = 'uint8')
+                    print(" V_hv: ",volume, " S_hv: ", surfacearea, " SSA_hv: ",ssa)
+                    volume, surfacearea, ssa = dimensionless_volume_interfacialsurfacearea_SSA(velocity_regions_file,imagesize,include_disconnected_hvr=False,datatype = 'uint8')
+                    print(" V_perc: ",volume, " S_perc: ", surfacearea, " SSA_perc: ",ssa)
                 else: 
                     volume = [] 
                     surfacearea = [] 

@@ -209,8 +209,8 @@ def checkbounds(vel_normalized,percolation_threshold,imagesize):
     labels_out = label(vel_norm)
     props = regionprops_table(labels_out,properties =['label','bbox','area'])
     props = pd.DataFrame(props)
-    # checking_bounds = props['bbox-5'][props['bbox-2']==0] == imagesize[2]
-    checking_bounds = props['bbox-3'][props['bbox-0']==0] == imagesize[0]
+    checking_bounds = props['bbox-5'][props['bbox-2']==0] == imagesize[2]
+    # checking_bounds = props['bbox-3'][props['bbox-0']==0] == imagesize[0]
     assert all(props['bbox-5']<=imagesize[2]) #if this raises an error, the dimensions must be messed up
     return any(checking_bounds)
 
@@ -221,8 +221,8 @@ def save(vel_normalized,percolation_threshold,imagesize,velocity_regions_file):
     labels_out = label(vel_norm)
     props = regionprops_table(labels_out,properties =['label','bbox','coords','area'])
     props = pd.DataFrame(props)
-    # id_box = props['bbox-5'][props['bbox-2']==0] == imagesize[2]
-    id_box = props['bbox-3'][props['bbox-0']==0] == imagesize[0]
+    id_box = props['bbox-5'][props['bbox-2']==0] == imagesize[2]
+    # id_box = props['bbox-3'][props['bbox-0']==0] == imagesize[0]
     coords = props['coords'][id_box.index[np.where(id_box)]].tolist()
     #id velocity zones
     vel_norm[x_2,y_2,z_2] = 2 #disconnected high velocity region
