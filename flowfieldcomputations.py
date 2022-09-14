@@ -7,8 +7,9 @@ import sklearn.metrics as metrics
 from skimage.measure import label, regionprops_table, marching_cubes, mesh_surface_area
 import time
 from scipy.special import erf
+import h5py
 
-def convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,clip_velocity_field=True,loadfrommat=True,loadfromraw=False,loadfromdat=False,datatype = 'float64'):
+def convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux=[],Uy=[],Uz=[],loadfrommat=True,loadfromh5=False,loadfromraw=False,loadfromdat=False,datatype = 'float64'):
     #load images
     if loadfrommat: #use for .mat file type -- DONT NEED TO RESHAPE FROM .mat
         velocityfield = mat73.loadmat(vel_components_file)#directory + '/' + sample_descriptor + '.mat')
@@ -22,7 +23,19 @@ def convert_components_into_magnitude(vel_components_file,vel_magnitude_file,ima
             Ux_array = Ux_array[:,:,9:imagesize[2]+9]
             Uy_array = Uy_array[:,:,9:imagesize[2]+9]
             Uz_array = Uz_array[:,:,9:imagesize[2]+9]
-            
+    elif loadfromh5:
+        velocityfield = h5py.File(vel_components_file,'r')
+        #x direction
+        Ux_array = np.array(velocityfield['VelocityX'])
+        #y direction
+        Uy_array = np.array(velocityfield['VelocityY'])
+        #z direction
+        Uz_array = np.array(velocityfield['VelocityZ'])
+        assert np.shape(Ux_array) == np.shape(Uy_array) == np.shape(Uz_array)
+        if np.shape(Ux_array) != imagesize: #remove first/last ten rows 
+            Ux_array = Ux_array[:,:,9:imagesize[2]+9]
+            Uy_array = Uy_array[:,:,9:imagesize[2]+9]
+            Uz_array = Uz_array[:,:,9:imagesize[2]+9]         
     elif loadfromraw:#use for .raw file type
         #x-direction
         Ux_array = np.fromfile(Ux, dtype=np.dtype('float64')) #specifying bc only this direction is in this datatype
@@ -30,7 +43,11 @@ def convert_components_into_magnitude(vel_components_file,vel_magnitude_file,ima
         Uy_array = np.fromfile(Uy, dtype=np.dtype('float64'))
         # z-direction
         Uz_array = np.fromfile(Uz, dtype=np.dtype('float64')) 
-        if clip_velocity_field: 
+        if len(Ux_array) != imagesize[0] * imagesize[1] * imagesize[2]:
+            clip_velocity_field = True
+        else:
+            clip_velocity_field = False
+        if clip_velocity_field:
             #adjust image size
             imagesize[2]+=20
             #reshape
@@ -53,7 +70,11 @@ def convert_components_into_magnitude(vel_components_file,vel_magnitude_file,ima
         #y-direction
         Uy_array = np.loadtxt(Uy) 
         #z-direction
-        Uz_array = np.loadtxt(Uz) 
+        Uz_array = np.loadtxt(Uz)
+        if len(Ux_array) != imagesize[0] * imagesize[1] * imagesize[2]:
+            clip_velocity_field = True
+        else:
+            clip_velocity_field = False
         if clip_velocity_field: 
             #adjust image size
             imagesize[2]+=20
@@ -213,9 +234,9 @@ def save(vel_normalized,percolation_threshold,imagesize,velocity_regions_file):
     #save thresholded velocity field
     vel_norm.astype('uint8').tofile(velocity_regions_file)#directory +"/" + sample_descriptor + '_velocity_regions.txt')
 
-def percolation_threshold(vel_magnitude_file,imagesize,velocity_regions_file,structure_file,load_structure=True,save_regions=True,datatype='float32',tolerance = [1e-2]):
+def percolation_threshold(vel_magnitude_file,imagesize,velocity_regions_file,structure_file=[],load_structure=False,save_regions=True,datatype='float32',tolerance = [1e-4]):
 
-    #load images
+    #load velocity magnitude field
     vel_magnitude = np.fromfile(vel_magnitude_file, dtype=np.dtype(datatype)) 
     vel_magnitude = vel_magnitude.reshape(imagesize)
 
