@@ -23,8 +23,8 @@ allsampleinfo = pd.read_csv("flow_transport_rxn_properties.csv",header=0,index_c
 # intermstructureinfo = pd.read_csv("Publication_intermediate_structures.csv", header=0,index_col=1)
 SSAporosityinfo = pd.read_csv("sample_SSA_porosity_intime.csv",header=0,index_col=0) #time is in minutes!!
 
-figuredata = pd.read_csv(r"C:\Users\zkana\Downloads\menke2017.csv",header=[0,1])
-sampnames = ['est3.1','est3.6','ket3.1','ket3.6','port3.1','port3.6']
+# figuredata = pd.read_csv(r"C:\Users\zkana\Downloads\menke2017.csv",header=[0,1])
+# sampnames = ['est3.1','est3.6','ket3.1','ket3.6','port3.1','port3.6']
 # figuredata = pd.read_csv(r"C:\Users\zkana\Downloads\alkhulaifi2018.csv",header=[0,1])
 # sampnames = ['HetBHigh','HetAHigh','HetALow','HetBLow']
 # figuredata = pd.read_csv(r"PereiraNunes2016.csv",header=[0,1])
@@ -50,42 +50,52 @@ if plot_figuredata:
             ax.vlines(figuredata[sampname].X.dropna()[index],color=colors[ind],ymin=0,ymax=ymax)
         print(rateofchange)
 
-count=0
+count=3
 for ind,sample in enumerate(SSAporosityinfo.index):    
     # if "Menke2017" not in SSAporosityinfo.Publication[sample]:continue
     # if "ket0.1ph3.6" in sample: 
     #     count+=1
     #     continue
-    if "_sim" not in sample: continue
+    # if not any([potentialsample in sample for potentialsample in ["ket0.1ph3.6_sim3","estaillades_sim1","estaillades_sim2"]]): continue
+    if sample != "estaillades_sim2":continue
     reff = [float(ele) for ele in SSAporosityinfo.reff[sample][1:-1].split(",")]
     timesteps = [float(ele) for ele in SSAporosityinfo.Timestep[sample][1:-1].split(",")][1:] #in seconds
-    averagedreff = moving_average(reff)
-    averagedtime = moving_average(timesteps)
+    if  SSAporosityinfo.Steps[sample] >= 50:
+        n = 5
+    else: n =2 
+    averagedreff = moving_average(reff,n=n)
+    averagedtime = moving_average(timesteps,n=n)
     changeiny = abs(np.diff(averagedreff))/averagedreff[0]
     changeinx = abs(np.diff(averagedtime))
     rateofchange = changeiny/changeinx
     index = check_convergence(rateofchange)
     if index == None: 
         print("no convergence for sample ", sample)
+        print("last roc: ",rateofchange[-1])
     else:
-        # print(sample, "reff: ", np.mean(reff[index:]), " at ", timesteps[index])
+        print(sample, "reff: ", np.mean(reff[index:]), " at ", timesteps[index])
         if plot_rxn_rate:
-            ax.plot(timesteps,reff,'-.',color=colors[count],label=sample)
+            ax.plot(timesteps,reff,'-',color=colors[count],label=sample)
             # ax.vlines(timesteps[index],color=colors[count],ymin=0,ymax=ymax)
         elif plot_rateofchange:
-            ax.plot(averagedtime[1:],rateofchange,'-.',label=sample)
+            ax.plot(averagedtime[1:],rateofchange,'-',color=colors[count],label=sample)
+            # ax.vlines(averagedtime[index],linestyles='dashed',color=colors[count],ymin=0,ymax=1)
             
         count +=1
 
 
 # ax.set_ylim(0,ymax)
-ax.set_xlabel("Time [min]")
+ax.set_xlabel("Time [min]",fontsize=14)
 if plot_rxn_rate:
     ax.set_ylabel("Effective Reaction Rate (reff) [mol/m2s]")
 elif plot_rateofchange:
-    ax.hlines(3e-3,color='black',xmin=0,xmax=300)
-    ax.set_ylabel("Rate of Change")
-    ax.set_xlim(0,75)
-ax.legend()
+    ax.hlines(3e-3,linestyles='dashed',color='black',xmin=0,xmax=300)
+    ax.set_ylabel("Rate of Change of Effective Reaction Rate in Time",fontsize=14)
+    ax.set_xlim(2.999999,250)
+    ax.set_ylim(5e-5,1e-1)
+ax.legend(loc = 'lower left')
+ax.semilogy()
+# ax.loglog()
+ax.tick_params('both',labelsize=12)
 fig.tight_layout()
 plt.show()

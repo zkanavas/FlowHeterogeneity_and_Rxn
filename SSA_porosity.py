@@ -30,7 +30,7 @@ def append_list_as_row(file_name, list_of_elem):
 create_sample_SSA_porosity_intime = True
 
 directory = r'H:\FlowHet_RxnDist'
-allsampleinfo = pd.read_csv("flow_transport_rxn_properties.csv",header=0,index_col=0)
+# allsampleinfo = pd.read_csv("flow_transport_rxn_properties.csv",header=0,index_col=0)
 intermstructureinfo = pd.read_csv("Publication_intermediate_structures.csv", header=0,index_col=1)
 
 if create_sample_SSA_porosity_intime: 
@@ -40,6 +40,8 @@ else:
 
 for root, dirs, files in os.walk(directory):
     if "GeoDict_Simulations" not in root: continue
+    if "estaillades" not in root: continue
+    if "Pe0.1" not in root: continue
     # elif "Hinz2019" in root: continue
     # elif "port0.1ph3.1" not in root: continue
     if "structures" in root:
@@ -75,6 +77,9 @@ for root, dirs, files in os.walk(directory):
             append_value(sample_SSA_porosity_intime[sample],"SSA",SSA)
             append_value(sample_SSA_porosity_intime[sample],"porosity",porosity)
         timestep = np.arange(36/60,((maxstep+1)*36)/60,36/60)
+        if len(sample_SSA_porosity_intime[sample]["SSA"]) != len(timestep):
+            chop = len(sample_SSA_porosity_intime[sample]["SSA"]) - len(timestep)
+            timestep = timestep[:chop]
         assert len(sample_SSA_porosity_intime[sample]["SSA"]) == len(timestep)
         rowcontents = sample, intermstructureinfo.Publication[sample],voxellength, str(sample_SSA_porosity_intime[sample]["SSA"]),str(sample_SSA_porosity_intime[sample]["porosity"]),maxstep,list(timestep)
         append_list_as_row('sample_SSA_porosity_intime.csv', rowcontents)

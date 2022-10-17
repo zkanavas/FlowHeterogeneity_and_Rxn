@@ -7,7 +7,7 @@ import csv
 
 
 calc_reff = False
-savenewfile = False
+savenewfile = True
 calc_rateofchange = True
 plot_ = False
 
@@ -21,7 +21,7 @@ def twominerals_reff(f_m1,f_m2,rho_m1,rho_m2,M_m1,M_m2,S,phi_change,time_change)
     reff = (phi_change/(S*time_change))*(((f_m1*rho_m1)/M_m1)+((f_m2*rho_m2)/M_m2))
     return reff
 
-def check_convergence(roc_array,threshold=4e-3):
+def check_convergence(roc_array,threshold=3e-3):
     for ind,r in enumerate(roc_array):
         if all(roc_array[ind:] < threshold):
             # print("converged")
@@ -49,7 +49,7 @@ def moving_average(a, n=2) :
     ret[n:] = ret[n:] - ret[:-n]
     return ret[n - 1:] / n
 
-allsampleinfo = pd.read_csv("flow_transport_rxn_properties.csv",header=0,index_col=0)
+# allsampleinfo = pd.read_csv("flow_transport_rxn_properties.csv",header=0,index_col=0)
 # intermstructureinfo = pd.read_csv("Publication_intermediate_structures.csv", header=0,index_col=1)
 SSAporosityinfo = pd.read_csv("sample_SSA_porosity_intime.csv",header=0,index_col=0) #time is in minutes!!
 
@@ -67,7 +67,8 @@ M_dolomite = 0.1844
 
 if calc_reff:
     for sample in SSAporosityinfo.index:
-        # if sample != "Sil_HetA_High":continue
+        if sample != "estaillades_sim2":continue
+        # if SSAporosityinfo.Publication[sample] != "Pe_0.0005": continue
         SSA = [float(ele) for ele in SSAporosityinfo.SSA[sample][1:-1].split(",")]
         porosity = [float(ele) for ele in SSAporosityinfo.Porosity[sample][1:-1].split(",")]
         timesteps = [float(ele) for ele in SSAporosityinfo.Timestep[sample][1:-1].split(",")]
@@ -106,6 +107,8 @@ if plot_:
     fig,ax = plt.subplots()
 if calc_rateofchange: 
     for sample in SSAporosityinfo.index:    
+        # if "estaillades_sim2" not in sample:continue
+        # if SSAporosityinfo.Publication[sample] != "Pe_0.0005": continue
         # if "Menke2017" not in SSAporosityinfo.Publication[sample]:continue
         reff = [float(ele) for ele in SSAporosityinfo.reff[sample][1:-1].split(",")]
         timesteps = [float(ele) for ele in SSAporosityinfo.Timestep[sample][1:-1].split(",")][1:] #in seconds
@@ -122,9 +125,9 @@ if calc_rateofchange:
         if index == None: 
             print("no convergence for sample ", sample, " final reff: ",reff[-1])
         else:
-            print(sample, "reff: ", np.mean(reff[index:]), " at ", timesteps[index])
+            print(sample, "reff: ", np.mean(averagedreff[index:]), " at ", timesteps[index])
             if plot_:
-                ax.plot(timesteps[1:],reff,'-.',label=sample)
+                ax.plot(timesteps,reff,'-.',label=sample)
     if plot_:
         ax.set_ylim(0,1.2e-4)
         ax.set_xlabel("Time [min]")

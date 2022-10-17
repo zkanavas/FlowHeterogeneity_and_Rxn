@@ -56,16 +56,17 @@ def calc_Pe(Dm,L,darcy_velocity,porosity):
 #     n,Da = calc_Da(r[ind],Uave,rho_calcite,phi[ind],M_calcite)
 #     print(samp, " Uave: ", Uave, " q: ", q, " Q: ",flowrate, " Da: ", Da, " n: ", n)
 
-desired_Pe = [100]
+desired_Pe = [0.0005]
 Dm = 7.5e-10 #[m2s-1]
-L = np.pi/9751.65
-phi = 13.1773/100
-cross_sectional_area = (1000*3e-6)**2 # [m2]
+S = 5022.58
+L = np.pi/S
+phi = 5.78967/100
+cross_sectional_area = 1.6473e-5 #m^2#(1000*3e-6)**2 # [m2]
 print(cross_sectional_area)
 r = 8.1e-4
 rho_calcite = 2.71e3 #[kg m-3]
 M_calcite = 0.1 #[kg mol-1]
-samp = "ketton"
+samp = "ket0.1ph3.1"
 for Pe in desired_Pe:
     Uave,q,flowrate = calc_flowrate(Dm,L,Pe,phi,cross_sectional_area)
     n,Da = calc_Da(r,Uave,rho_calcite,phi,M_calcite)
