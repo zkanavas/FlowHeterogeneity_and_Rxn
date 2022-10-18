@@ -5,8 +5,12 @@ import numpy as np
 import pandas as pd
 import time
 import matplotlib.pyplot as plt
-
-calc_components = False
+import gd
+from gd import stringmap
+from gd import guf
+import h5py
+pull_out_components = True
+calc_components = True
 calc_percolation_threshold = True
 calc_EMD = True
 calc_V_S = True
@@ -16,9 +20,9 @@ calc_components_single = False
 df = pd.read_csv("flow_transport_rxn_properties.csv",header=0,index_col=0)
 
 rootdir =r"H:\FlowHet_RxnDist"
-folders_to_look_thru = ["Menke2017","Menke2015","AlKhulaifi2018","AlKhulaifi2019"]#,"PereiraNunes2016"]
+folders_to_look_thru = ["Menke2017","PereiraNunes2016"]#"Menke2015","AlKhulaifi2018","AlKhulaifi2019"]#,""]
 # folders_to_look_thru = ["estaillades"]
-reaction_phase = ["final_pressuredrop","initial_pressuredrop"]
+reaction_phase = ["finalpressuredrop"]#,"initial_pressuredrop"]
 
 # rootdir =r"H:\FlowHet_RxnDist\Menke2017\ket0.1ph3.6"#\GeoDict_Simulations"
 # folders_to_look_thru = ["Menke2015","Menke2017","AlKhulaifi2018","AlKhulaifi2019"]#,"Hinz2019","PereiraNunes2016"]
@@ -43,16 +47,33 @@ if calc_components_single:
                     Uz = []
                     vel_magnitude=convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,clip_velocity_field=False,loadfrommat=True,loadfromraw=False,loadfromdat=False,datatype = 'float64')
 
-
+if pull_out_components:
+    for root, dirs, files in os.walk(rootdir, topdown=False): 
+        if "GeoDict_Simulations" not in root: continue
+        if any(folder in root for folder in folders_to_look_thru) and any(phase in root for phase in reaction_phase):
+            for file in files:
+                if ".vap" in file:
+                    guf_file = guf.GUF(os.path.join(root, file))
+                    guf_image = guf_file.getImage("Velocity")
+                    h5f = h5py.File(root + '/' + 'velocity_components.h5','w')
+                    h5f.create_dataset('VelocityX', data = guf_image['VelocityX'], dtype ="float32")
+                    h5f.create_dataset('VelocityY', data = guf_image['VelocityY'], dtype ="float32")
+                    h5f.create_dataset('VelocityZ',data = guf_image['VelocityZ'], dtype ="float32")
+                    h5f.close()
 if calc_components:
     for (root,dirs,files) in os.walk(rootdir):
+        if "GeoDict_Simulations" not in root: continue
         if any(folder in root for folder in folders_to_look_thru) and any(phase in root for phase in reaction_phase):
             sample = [x for x in df.index if x in root]
             imagesize = (int(df['nx'][sample].values[0]),int(df['ny'][sample].values[0]),int(df['nz'][sample].values[0]))
             phase = [phase for phase in reaction_phase if phase in root]
             print("converting to vel mag for ", sample, phase)
             for file in files:
-                if "flowfield.mat" in file: 
+                if ".h5" in file:
+                    vel_components_file = root+"/"+file
+                    vel_magnitude_file = root+"/vel_magnitude.raw"
+                    vel_magnitude=convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,loadfrommat=False,loadfromh5=True,loadfromraw=False,loadfromdat=False,datatype = 'float64')
+                elif "flowfield.mat" in file: 
                     #file is the matlab file of the velocity components, need to make it magnitude
                     vel_components_file = root+"/"+file
                     vel_magnitude_file = root+"/vel_magnitude.raw"
@@ -75,7 +96,7 @@ if calc_components:
                     # vel_magnitude=convert_components_into_magnitude(vel_components_file,vel_magnitude_file,imagesize,Ux,Uy,Uz,clip_velocity_field=False,loadfrommat=False,loadfromraw=False,loadfromdat=True,datatype = 'float64')
 
 for (root,dirs,files) in os.walk(rootdir):
-    if "GeoDict_Simulations" in root: continue
+    if "GeoDict_Simulations" not in root: continue
     if any(folder in root for folder in folders_to_look_thru) and any(phase in root for phase in reaction_phase):
         sample = [x for x in df.index if x in root]
         imagesize = (int(df['nx'][sample].values[0]),int(df['ny'][sample].values[0]),int(df['nz'][sample].values[0]))
